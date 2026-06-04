@@ -1,0 +1,14 @@
+{
+  "name": "gissen",
+  "version": "0.0.1",
+  "description": "Headless visual editor for Vue. Coming soon.",
+  "keywords": ["vue", "page-builder", "headless", "drag-drop", "visual-editor"],
+  "homepage": "https://gissen.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gissen-dev/gissen"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "files": ["index.js", "README.md"]
+}
