@@ -1,0 +1,47 @@
+{
+  "name": "@gissen/core",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Headless visual editor and renderer for Vue 3.",
+  "license": "MIT",
+  "homepage": "https://gissen.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gissen-dev/gissen",
+    "directory": "packages/core"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.58.7",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vue/test-utils": "^2.4.10",
+    "jsdom": "^29.1.1",
+    "reka-ui": "^2.9.9",
+    "vite": "^8.0.16",
+    "vite-plugin-dts": "^5.0.2",
+    "vitest": "^4.1.8",
+    "vue": "^3.5.35",
+    "vue-draggable-plus": "^0.6.1"
+  }
+}
