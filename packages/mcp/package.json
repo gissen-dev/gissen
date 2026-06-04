@@ -1,0 +1,32 @@
+{
+  "name": "gissen-mcp",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Model Context Protocol server for Gissen, enabling AI agents to build pages.",
+  "license": "MIT",
+  "homepage": "https://gissen.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gissen-dev/gissen",
+    "directory": "packages/mcp"
+  },
+  "bin": {
+    "gissen-mcp": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.41",
+    "tsup": "^8.5.1",
+    "vitest": "^4.1.8"
+  }
+}
