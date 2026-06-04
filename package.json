@@ -1,14 +1,30 @@
 {
-  "name": "gissen",
-  "version": "0.0.1",
-  "description": "Headless visual editor for Vue. Coming soon.",
-  "keywords": ["vue", "page-builder", "headless", "drag-drop", "visual-editor"],
+  "name": "gissen-monorepo",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.10.0",
+  "description": "The headless visual editor for Vue. Agent-native, self-hostable, MIT-licensed.",
+  "license": "MIT",
   "homepage": "https://gissen.dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/gissen-dev/gissen"
   },
-  "license": "MIT",
-  "main": "index.js",
-  "files": ["index.js", "README.md"]
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm -r --if-present run dev",
+    "build": "pnpm -r --if-present run build",
+    "test": "pnpm -r --if-present run test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "pnpm -r --if-present run typecheck"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^3.12.0",
+    "eslint": "^9.17.0",
+    "typescript": "^5.7.2"
+  }
 }

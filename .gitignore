@@ -1,1 +1,43 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Vite / VitePress
+.vite/
+**/.vitepress/cache/
+**/.vitepress/dist/
+
+# Nuxt
+.nuxt/
+.output/
+.data/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Env files and secrets
 .npmrc
+.env
+.env.*
+!.env.example
+
+# Test coverage
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
