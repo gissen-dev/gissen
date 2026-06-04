@@ -22,8 +22,8 @@ React-based visual editor.
 ```
 gissen/
 ├── packages/
-│   ├── core/                # @gissen/core — editor + renderer library
-│   ├── mcp/                 # @gissen/mcp — MCP server for AI agents
+│   ├── core/                # gissen — editor + renderer library
+│   ├── mcp/                 # gissen-mcp — MCP server for AI agents
 │   └── create-gissen-app/   # create-gissen-app — project scaffolder
 ├── apps/
 │   └── docs/                # VitePress documentation site

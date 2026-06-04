@@ -1,5 +1,5 @@
 {
-  "name": "@gissen/core",
+  "name": "gissen",
   "type": "module",
   "version": "0.0.0",
   "description": "Headless visual editor and renderer for Vue 3.",
