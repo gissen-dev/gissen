@@ -1,0 +1,29 @@
+{
+  "name": "create-gissen-app",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Scaffold a new Gissen project.",
+  "license": "MIT",
+  "homepage": "https://gissen.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gissen-dev/gissen",
+    "directory": "packages/create-gissen-app"
+  },
+  "bin": {
+    "create-gissen-app": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.41",
+    "tsup": "^8.5.1",
+    "vitest": "^4.1.8"
+  }
+}

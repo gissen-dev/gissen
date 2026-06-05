@@ -51,6 +51,18 @@ importers:
         specifier: ^0.6.1
         version: 0.6.1(@types/sortablejs@1.15.9)
 
+  packages/create-gissen-app:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.41
+        version: 20.19.41
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(@microsoft/api-extractor@7.58.7(@types/node@20.19.41))(postcss@8.5.15)(typescript@5.9.3)(yaml@2.9.0)
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@20.19.41)(jsdom@29.1.1)(vite@8.0.16(@types/node@20.19.41)(esbuild@0.27.7)(yaml@2.9.0))
+
   packages/mcp:
     dependencies:
       '@modelcontextprotocol/sdk':
