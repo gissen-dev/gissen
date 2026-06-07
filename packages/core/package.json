@@ -27,10 +27,14 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit"
   },
   "peerDependencies": {
     "vue": "^3.4.0"
+  },
+  "dependencies": {
+    "nanoid": "^5.1.11",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.58.7",

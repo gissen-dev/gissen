@@ -1,4 +1,5 @@
 import type { Component } from 'vue'
+import type { ComponentData } from './data'
 
 /** The set of field editor types Gissen supports in v0.1. */
 export type FieldType =
@@ -34,10 +35,16 @@ export interface NumberField extends FieldBase {
   step?: number
 }
 
-/** A select (dropdown) field with a fixed set of options. */
-export interface SelectField extends FieldBase {
+/**
+ * A select (dropdown) field with a fixed set of options.
+ * Generic over `TOptions` so that literal option values flow through to
+ * `InferFieldType`, producing a union of the exact value literals.
+ */
+export interface SelectField<
+  TOptions extends ReadonlyArray<{ label: string, value: string | number }> = ReadonlyArray<{ label: string, value: string | number }>,
+> extends FieldBase {
   type: 'select'
-  options: ReadonlyArray<{ label: string, value: string | number }>
+  options: TOptions
 }
 
 /** A boolean (toggle) field. */
@@ -48,7 +55,7 @@ export interface BooleanField extends FieldBase {
 /** A slot field that holds nested child components. */
 export interface SlotField extends FieldBase {
   type: 'slot'
-  /** Optional list of component type names that are allowed in this slot. */
+  /** Optional allow-list of component type names permitted in this slot. */
   allow?: readonly string[]
 }
 
@@ -61,14 +68,39 @@ export type FieldConfig =
   | BooleanField
   | SlotField
 
+/**
+ * Maps a single field config to its TypeScript value type:
+ * - text / textarea → `string`
+ * - number → `number`
+ * - boolean → `boolean`
+ * - select → union of option value literals (e.g. `'signup' | 'buy'`)
+ * - slot → `ComponentData[]`
+ */
+export type InferFieldType<F extends FieldConfig> =
+  F extends TextField ? string
+    : F extends TextareaField ? string
+      : F extends NumberField ? number
+        : F extends BooleanField ? boolean
+          : F extends SelectField<infer TOptions> ? TOptions[number]['value']
+            : F extends SlotField ? ComponentData[]
+              : never
+
+/**
+ * Maps a `fields` record to a props object by applying `InferFieldType` to
+ * each entry.
+ */
+export type InferComponentProps<Fields extends Record<string, FieldConfig>> = {
+  [K in keyof Fields]: InferFieldType<Fields[K]>
+}
+
 /** Configuration for a registered, editable component. */
-export interface ComponentConfig<TProps = Record<string, unknown>> {
+export interface ComponentConfig<TFields extends Record<string, FieldConfig> = Record<string, FieldConfig>> {
   /** Map of prop name to field config. */
-  fields: Record<string, FieldConfig>
-  /** Default values applied to new instances. */
-  defaultProps?: Partial<TProps>
-  /** The Vue component used both in the editor canvas and in production render. */
-  render: Component
+  fields: TFields
+  /** Default values applied to new instances; type-checked against inferred props. */
+  defaultProps?: Partial<InferComponentProps<TFields>>
+  /** The Vue component rendered in both editor canvas and production output. */
+  render: Component<InferComponentProps<TFields> & { id: string }>
 }
 
 /** Configuration for the page root container. */

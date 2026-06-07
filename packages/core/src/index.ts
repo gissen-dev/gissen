@@ -1,5 +1,4 @@
 export { defineGissenConfig } from './define'
-
 export type {
   BooleanField,
   ComponentConfig,
@@ -8,6 +7,8 @@ export type {
   FieldType,
   GissenConfig,
   GissenData,
+  InferComponentProps,
+  InferFieldType,
   NumberField,
   RootConfig,
   RootData,
@@ -16,3 +17,5 @@ export type {
   TextareaField,
   TextField,
 } from './types'
+export { createComponent, createEmptyData, ensureId, generateId } from './utils'
+export { GissenValidationError, validateConfig, validateData } from './validation'

@@ -7,6 +7,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Getting Started', link: '/getting-started' },
+      { text: 'Config API', link: '/config-api' },
     ],
 
     sidebar: [
@@ -14,6 +15,12 @@ export default defineConfig({
         text: 'Introduction',
         items: [
           { text: 'Getting Started', link: '/getting-started' },
+        ],
+      },
+      {
+        text: 'Reference',
+        items: [
+          { text: 'Config API', link: '/config-api' },
         ],
       },
     ],

@@ -4,6 +4,8 @@ export type {
   FieldConfig,
   FieldType,
   GissenConfig,
+  InferComponentProps,
+  InferFieldType,
   NumberField,
   RootConfig,
   SelectField,
