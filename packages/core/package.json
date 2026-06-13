@@ -1,15 +1,32 @@
 {
   "name": "gissen",
   "type": "module",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Headless visual editor and renderer for Vue 3.",
   "license": "MIT",
   "homepage": "https://gissen.dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gissen-dev/gissen",
+    "url": "git+https://github.com/gissen-dev/gissen.git",
     "directory": "packages/core"
   },
+  "bugs": {
+    "url": "https://github.com/gissen-dev/gissen/issues"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "nuxt",
+    "page-builder",
+    "visual-editor",
+    "drag-and-drop",
+    "headless",
+    "cms",
+    "mcp",
+    "ai-agent",
+    "no-code",
+    "open-source"
+  ],
   "sideEffects": ["*.css"],
   "exports": {
     ".": {
