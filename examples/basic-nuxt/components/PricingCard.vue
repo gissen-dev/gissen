@@ -12,6 +12,7 @@ defineProps<{
 <template>
   <div class="pricing-card" :class="{ 'pricing-card--featured': featured }">
     <h2>{{ name }}</h2>
-    <slot />
+    <!-- Slot convention: the editor passes rendered children via the named slot "features" -->
+    <slot name="features" />
   </div>
 </template>

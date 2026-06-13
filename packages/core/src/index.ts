@@ -1,3 +1,4 @@
+export { default as GissenEditor } from './components/GissenEditor.vue'
 export { defineGissenConfig } from './define'
 export type {
   BooleanField,

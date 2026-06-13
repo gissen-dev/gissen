@@ -13,9 +13,9 @@ back into real Vue components in their app.
 It is the Vue equivalent of [Puck](https://github.com/puckeditor/puck), the
 React-based visual editor.
 
-> **Status:** pre-alpha. APIs are unstable and the editor is not yet
-> implemented. This repository currently contains the foundational monorepo
-> skeleton.
+> **Status:** pre-alpha. APIs are unstable. The editor canvas with
+> drag-and-drop is functional; the properties panel and production rendering
+> API are in progress.
 
 ## Monorepo structure
 

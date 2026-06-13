@@ -39,6 +39,12 @@ importers:
       nanoid:
         specifier: ^5.1.11
         version: 5.1.11
+      reka-ui:
+        specifier: ^2.9.9
+        version: 2.9.9(vue@3.5.35(typescript@5.9.3))
+      vue-draggable-plus:
+        specifier: ^0.6.1
+        version: 0.6.1(@types/sortablejs@1.15.9)
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -55,9 +61,6 @@ importers:
       jsdom:
         specifier: ^29.1.1
         version: 29.1.1
-      reka-ui:
-        specifier: ^2.9.9
-        version: 2.9.9(vue@3.5.35(typescript@5.9.3))
       vite:
         specifier: ^8.0.16
         version: 8.0.16(@types/node@20.19.41)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)
@@ -70,9 +73,6 @@ importers:
       vue:
         specifier: ^3.5.35
         version: 3.5.35(typescript@5.9.3)
-      vue-draggable-plus:
-        specifier: ^0.6.1
-        version: 0.6.1(@types/sortablejs@1.15.9)
 
   packages/create-gissen-app:
     devDependencies:

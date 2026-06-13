@@ -10,13 +10,14 @@
     "url": "https://github.com/gissen-dev/gissen",
     "directory": "packages/core"
   },
-  "sideEffects": false,
+  "sideEffects": ["*.css"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./style.css": "./dist/gissen.css"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -34,6 +35,8 @@
   },
   "dependencies": {
     "nanoid": "^5.1.11",
+    "reka-ui": "^2.9.9",
+    "vue-draggable-plus": "^0.6.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -41,11 +44,9 @@
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/test-utils": "^2.4.10",
     "jsdom": "^29.1.1",
-    "reka-ui": "^2.9.9",
     "vite": "^8.0.16",
     "vite-plugin-dts": "^5.0.2",
     "vitest": "^4.1.8",
-    "vue": "^3.5.35",
-    "vue-draggable-plus": "^0.6.1"
+    "vue": "^3.5.35"
   }
 }

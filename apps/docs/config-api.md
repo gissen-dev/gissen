@@ -98,6 +98,26 @@ Optionally restrict which component types may appear as children:
 const childrenField = { type: 'slot' as const, allow: ['Card', 'Text'] }
 ```
 
+### Slot convention
+
+A component that declares a `slot` field **must** expose a named slot in its template using the exact field name:
+
+```vue
+<!-- PricingCard.vue — field: features: { type: 'slot' } -->
+<template>
+  <div class="pricing-card">
+    <h2>{{ name }}</h2>
+    <ul>
+      <slot name="features" />
+    </ul>
+  </div>
+</template>
+```
+
+During editing, `<GissenEditor>` injects a drop zone into each named slot so child components can be placed there visually. During production rendering (via `<GissenRender>`, coming soon) the slot receives the rendered children.
+
+If the slot field is named `children`, the component must have `<slot name="children" />`. The slot name and the field name must match exactly.
+
 ## Runtime validation
 
 Use `validateConfig` to check a config object at runtime — for example when loading a config from an external source:

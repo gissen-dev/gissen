@@ -19,7 +19,8 @@ export function createComponent(type: string, config: GissenConfig): ComponentDa
   return {
     type,
     props: {
-      ...(componentConfig.defaultProps ?? {}),
+      // structuredClone ensures slot fields (arrays) are not shared with defaultProps
+      ...structuredClone(componentConfig.defaultProps ?? {}),
       id: generateId(),
     },
   }

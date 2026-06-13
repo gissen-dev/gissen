@@ -1,0 +1,236 @@
+/* Gissen editor chrome — all classes prefixed with .gissen-
+   Import this file (via GissenEditor.vue) to use the editor.
+   Override --gissen-accent to change the primary highlight color. */
+
+:root {
+  --gissen-accent: #4f46e5;
+  --gissen-accent-light: #e0e7ff;
+  --gissen-bg: #ffffff;
+  --gissen-surface: #f8f9fa;
+  --gissen-border: #e2e8f0;
+  --gissen-border-strong: #cbd5e1;
+  --gissen-text: #1e293b;
+  --gissen-text-muted: #64748b;
+  --gissen-text-faint: #94a3b8;
+  --gissen-node-outline: 2px solid var(--gissen-accent);
+  --gissen-radius: 4px;
+  --gissen-sidebar-width: 260px;
+  --gissen-panel-width: 300px;
+}
+
+/* ── Layout ─────────────────────────────────────────────── */
+
+.gissen-editor {
+  display: grid;
+  grid-template-columns: var(--gissen-sidebar-width) 1fr var(--gissen-panel-width);
+  height: 100%;
+  overflow: hidden;
+  background: var(--gissen-bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  color: var(--gissen-text);
+  contain: layout style;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+
+.gissen-sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--gissen-border);
+  background: var(--gissen-surface);
+  overflow-y: auto;
+  contain: layout style;
+}
+
+.gissen-sidebar__header {
+  padding: 12px 14px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gissen-text-muted);
+  border-bottom: 1px solid var(--gissen-border);
+  flex-shrink: 0;
+}
+
+.gissen-sidebar__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+}
+
+.gissen-sidebar__item {
+  display: flex;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: var(--gissen-radius);
+  cursor: grab;
+  user-select: none;
+  color: var(--gissen-text);
+  border: 1px solid transparent;
+  transition: background 120ms, border-color 120ms;
+}
+
+.gissen-sidebar__item:hover {
+  background: var(--gissen-accent-light);
+  border-color: var(--gissen-accent);
+  color: var(--gissen-accent);
+}
+
+.gissen-sidebar__item:active {
+  cursor: grabbing;
+}
+
+.gissen-sidebar__item-icon {
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ── Canvas ─────────────────────────────────────────────── */
+
+.gissen-canvas {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--gissen-bg);
+  contain: layout style;
+}
+
+.gissen-canvas__inner {
+  padding: 24px;
+  min-height: 100%;
+}
+
+.gissen-canvas__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  border: 2px dashed var(--gissen-border-strong);
+  border-radius: 8px;
+  color: var(--gissen-text-faint);
+  text-align: center;
+  gap: 8px;
+}
+
+.gissen-canvas__empty-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--gissen-text-muted);
+}
+
+.gissen-canvas__empty-hint {
+  font-size: 12px;
+}
+
+/* ── Canvas nodes ──────────────────────────────────────── */
+
+.gissen-node {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: var(--gissen-radius);
+  transition: border-color 100ms;
+  margin-bottom: 4px;
+}
+
+.gissen-node:hover {
+  border-color: var(--gissen-border-strong);
+}
+
+.gissen-node--selected {
+  border-color: var(--gissen-accent) !important;
+}
+
+.gissen-node--error {
+  border: 2px dashed #ef4444;
+  padding: 8px 12px;
+  border-radius: var(--gissen-radius);
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+/* ── Slot zones ────────────────────────────────────────── */
+
+.gissen-slot {
+  min-height: 40px;
+  border-radius: var(--gissen-radius);
+  padding: 4px;
+}
+
+.gissen-slot--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border: 1px dashed var(--gissen-border-strong);
+  border-radius: var(--gissen-radius);
+  color: var(--gissen-text-faint);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* ── Properties panel ──────────────────────────────────── */
+
+.gissen-panel {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--gissen-border);
+  background: var(--gissen-surface);
+  overflow-y: auto;
+  contain: layout style;
+}
+
+.gissen-panel__header {
+  padding: 12px 14px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gissen-text-muted);
+  border-bottom: 1px solid var(--gissen-border);
+  flex-shrink: 0;
+}
+
+.gissen-panel__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--gissen-text-faint);
+  font-size: 12px;
+}
+
+.gissen-panel__selected-type {
+  padding: 14px;
+  font-size: 13px;
+  color: var(--gissen-text-muted);
+}
+
+.gissen-panel__selected-type strong {
+  color: var(--gissen-accent);
+}
+
+/* ── Drag-and-drop feedback (Sortable ghost/chosen) ─────── */
+
+.gissen-drag-ghost {
+  opacity: 0.4;
+}
+
+.gissen-drag-chosen {
+  border-color: var(--gissen-accent) !important;
+  box-shadow: 0 0 0 2px var(--gissen-accent-light);
+}
+
+.gissen-drag-fallback {
+  opacity: 0.9;
+  border: 2px solid var(--gissen-accent);
+  border-radius: var(--gissen-radius);
+  background: var(--gissen-bg);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}

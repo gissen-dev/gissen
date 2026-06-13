@@ -8,6 +8,7 @@ export default defineConfig({
     nav: [
       { text: 'Getting Started', link: '/getting-started' },
       { text: 'Config API', link: '/config-api' },
+      { text: 'Editor', link: '/editor' },
     ],
 
     sidebar: [
@@ -21,6 +22,7 @@ export default defineConfig({
         text: 'Reference',
         items: [
           { text: 'Config API', link: '/config-api' },
+          { text: 'Editor', link: '/editor' },
         ],
       },
     ],

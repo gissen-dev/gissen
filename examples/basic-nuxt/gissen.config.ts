@@ -1,4 +1,5 @@
 import { defineGissenConfig } from 'gissen'
+import Container from './components/Container.vue'
 import Hero from './components/Hero.vue'
 import PricingCard from './components/PricingCard.vue'
 
@@ -28,6 +29,13 @@ export default defineGissenConfig({
       },
       defaultProps: { name: '', featured: false, features: [] },
       render: PricingCard,
+    },
+    Container: {
+      fields: {
+        children: { type: 'slot' as const, label: 'Children' },
+      },
+      defaultProps: { children: [] },
+      render: Container,
     },
   },
 })
