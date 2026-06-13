@@ -28,7 +28,7 @@ gissen/
 ├── apps/
 │   └── docs/                # VitePress documentation site
 └── examples/
-    └── basic-nuxt/          # Example Nuxt 3 app using Gissen
+    └── basic-nuxt/          # Example Nuxt 4 app using Gissen
 ```
 
 ## Development
