@@ -1,34 +1,54 @@
 import { defineGissenConfig } from 'gissen'
 import Container from './components/Container.vue'
+import FeatureCard from './components/FeatureCard.vue'
 import Hero from './components/Hero.vue'
-import PricingCard from './components/PricingCard.vue'
+import TextBlock from './components/TextBlock.vue'
 
 export default defineGissenConfig({
   components: {
     Hero: {
       fields: {
         title: { type: 'text' as const, label: 'Title' },
-        count: { type: 'number' as const, label: 'Count', min: 0 },
+        subtitle: { type: 'textarea' as const, label: 'Subtitle' },
         cta: {
           type: 'select' as const,
-          label: 'Call to action',
+          label: 'CTA',
           options: [
-            { label: 'Sign up', value: 'signup' },
-            { label: 'Buy now', value: 'buy' },
+            { label: 'Get started free', value: 'get-started' },
+            { label: 'Learn more', value: 'learn-more' },
           ] as const,
         },
       },
-      defaultProps: { title: 'Hello', count: 0, cta: 'signup' },
+      defaultProps: {
+        title: 'Build pages visually',
+        subtitle: 'Drag and drop your own Vue components. No lock-in, MIT licensed.',
+        cta: 'get-started',
+      },
       render: Hero,
     },
-    PricingCard: {
+    TextBlock: {
       fields: {
-        name: { type: 'text' as const, label: 'Plan name' },
-        featured: { type: 'boolean' as const, label: 'Featured' },
-        features: { type: 'slot' as const, label: 'Features' },
+        heading: { type: 'text' as const, label: 'Heading' },
+        body: { type: 'textarea' as const, label: 'Body' },
       },
-      defaultProps: { name: '', featured: false, features: [] },
-      render: PricingCard,
+      defaultProps: {
+        heading: 'How it works',
+        body: 'Register your Vue components with a typed config. Users drag them onto the canvas — the output is plain JSON you render anywhere.',
+      },
+      render: TextBlock,
+    },
+    FeatureCard: {
+      fields: {
+        icon: { type: 'text' as const, label: 'Icon (emoji)' },
+        title: { type: 'text' as const, label: 'Title' },
+        description: { type: 'textarea' as const, label: 'Description' },
+      },
+      defaultProps: {
+        icon: '⚡',
+        title: 'Feature',
+        description: 'Describe what makes this feature great.',
+      },
+      render: FeatureCard,
     },
     Container: {
       fields: {

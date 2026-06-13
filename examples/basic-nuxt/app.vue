@@ -10,24 +10,50 @@ const data = ref<GissenData>({
     {
       type: 'Hero',
       props: {
-        id: 'hero-seed-1',
-        title: 'Welcome to Gissen',
-        count: 42,
-        cta: 'signup',
+        id: 'hero-1',
+        title: 'Build pages visually',
+        subtitle: 'Drag and drop your own Vue components onto a canvas. The output is plain JSON — render it anywhere.',
+        cta: 'get-started',
+      },
+    },
+    {
+      type: 'TextBlock',
+      props: {
+        id: 'text-1',
+        heading: 'How it works',
+        body: 'Register your Vue components with a typed config. Users drag them onto the canvas — the output is plain JSON you render anywhere.',
       },
     },
     {
       type: 'Container',
       props: {
-        id: 'container-seed-1',
+        id: 'container-1',
         children: [
           {
-            type: 'PricingCard',
+            type: 'FeatureCard',
             props: {
-              id: 'pricing-seed-1',
-              name: 'Pro Plan',
-              featured: true,
-              features: [],
+              id: 'feature-headless',
+              icon: '🧩',
+              title: 'Headless',
+              description: 'Your components, your styles. Gissen is a runtime, not a UI framework.',
+            },
+          },
+          {
+            type: 'FeatureCard',
+            props: {
+              id: 'feature-typesafe',
+              icon: '🔷',
+              title: 'Type-safe',
+              description: 'Prop types are inferred from your field definitions. Mismatches are caught at compile time.',
+            },
+          },
+          {
+            type: 'FeatureCard',
+            props: {
+              id: 'feature-agent',
+              icon: '🤖',
+              title: 'Agent-native',
+              description: 'An MCP server lets AI agents build pages programmatically — same JSON, same config.',
             },
           },
         ],

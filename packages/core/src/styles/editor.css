@@ -158,7 +158,8 @@
 /* ── Slot zones ────────────────────────────────────────── */
 
 .gissen-slot {
-  min-height: 40px;
+  flex: 1;
+  min-height: 150px;
   border-radius: var(--gissen-radius);
   padding: 4px;
 }
@@ -167,7 +168,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
+  height: 100%;
+  min-height: 150px;
   border: 1px dashed var(--gissen-border-strong);
   border-radius: var(--gissen-radius);
   color: var(--gissen-text-faint);

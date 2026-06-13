@@ -51,6 +51,8 @@ export function useCanvasZoneDnD(
         return zone.parentId === null || !isAncestorOf(result.component, zone.parentId)
       },
     },
+    draggable: '.gissen-node',
+    emptyInsertThreshold: 60,
     filter: '.gissen-canvas__empty,.gissen-slot--empty',
     preventOnFilter: true,
     animation: 150,
