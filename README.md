@@ -17,6 +17,14 @@ React-based visual editor.
 > drag-and-drop is functional; the properties panel and production rendering
 > API are in progress.
 
+## Demo & deep dive
+
+[![Watch the demo](https://img.youtube.com/vi/tT_0eCHhnIE/maxresdefault.jpg)](https://youtu.be/tT_0eCHhnIE)
+
+📺 **[Watch the demo video](https://youtu.be/tT_0eCHhnIE)**
+
+📝 **[Building a headless visual editor for Vue: the Vue answer to Puck](https://dev.to/yukos1221/building-a-headless-visual-editor-for-vue-the-vue-answer-to-puck-10b7)** — a technical deep dive on dev.to.
+
 ## Monorepo structure
 
 ```
