@@ -1,5 +1,6 @@
+import type { Ref } from 'vue'
 import type { ComponentData, GissenConfig, GissenData } from '../types'
-import { inject, provide, reactive } from 'vue'
+import { inject, isRef, provide, reactive, ref } from 'vue'
 import { createComponent } from '../utils'
 import { findComponent, isAncestorOf } from '../utils/tree'
 
@@ -13,25 +14,27 @@ export interface EditorStore {
   selectComponent: (id: string | null) => void
 }
 
-export function createEditorStore(config: GissenConfig, initialData: GissenData): EditorStore {
+export function createEditorStore(config: GissenConfig, initialData: GissenData | Ref<GissenData>): EditorStore {
+  // Single source of truth: when a Ref (the v-model) is passed, the store
+  // mutates it directly so edits propagate to the parent with no extra sync.
+  const data: Ref<GissenData> = isRef(initialData) ? initialData : (ref(initialData) as Ref<GissenData>)
   const state = reactive({
-    data: initialData as GissenData,
     selectedId: null as string | null,
   })
 
   return {
     get config() { return config },
-    get data() { return state.data },
-    set data(v: GissenData) { state.data = v },
+    get data() { return data.value },
+    set data(v: GissenData) { data.value = v },
     get selectedId() { return state.selectedId },
 
     insertComponent(type, parentId, slotName, index) {
       const component = createComponent(type, config)
       if (parentId === null) {
-        state.data.content.splice(index, 0, component)
+        data.value.content.splice(index, 0, component)
       }
       else {
-        const parentResult = findComponent(state.data, parentId)
+        const parentResult = findComponent(data.value, parentId)
         if (!parentResult)
           throw new Error(`[Gissen] Parent component "${parentId}" not found`)
         if (!slotName)
@@ -45,7 +48,7 @@ export function createEditorStore(config: GissenConfig, initialData: GissenData)
     },
 
     moveComponent(id, newParentId, newSlotName, newIndex) {
-      const movingResult = findComponent(state.data, id)
+      const movingResult = findComponent(data.value, id)
       if (!movingResult)
         throw new Error(`[Gissen] Component "${id}" not found`)
 
@@ -69,12 +72,12 @@ export function createEditorStore(config: GissenConfig, initialData: GissenData)
       const adjustedIndex = isSameArray && newIndex > movingResult.index ? newIndex - 1 : newIndex
 
       if (newParentId === null) {
-        state.data.content.splice(adjustedIndex, 0, component)
+        data.value.content.splice(adjustedIndex, 0, component)
       }
       else {
         if (!newSlotName)
           throw new Error('[Gissen] slotName is required when parentId is provided')
-        const parentResult = findComponent(state.data, newParentId)
+        const parentResult = findComponent(data.value, newParentId)
         if (!parentResult)
           throw new Error(`[Gissen] Target parent "${newParentId}" not found`)
         const slot = parentResult.component.props[newSlotName]
@@ -86,7 +89,7 @@ export function createEditorStore(config: GissenConfig, initialData: GissenData)
     },
 
     removeComponent(id) {
-      const result = findComponent(state.data, id)
+      const result = findComponent(data.value, id)
       if (!result)
         throw new Error(`[Gissen] Component "${id}" not found`)
       result.siblings.splice(result.index, 1)
