@@ -222,6 +222,63 @@ describe('validateData', () => {
     expect(error!.message).toMatch(/children\[0\]\.props\.id/)
   })
 
+  it('reports a GissenValidationError (not a TypeError) for a null slot child', () => {
+    const data = {
+      root: { props: {} },
+      content: [
+        { type: 'Container', props: { id: 'c1', children: [null] } },
+      ],
+    }
+    let error: unknown
+    try {
+      validateData(data, config)
+    }
+    catch (e) {
+      error = e
+    }
+    expect(error).toBeInstanceOf(GissenValidationError)
+    expect((error as GissenValidationError).message).toMatch(/children\[0\]/)
+  })
+
+  it('reports a GissenValidationError for a null child in an allow-list slot', () => {
+    // `Container.children` has allow: ['Card'] — the allow-check must not throw on null.
+    const data = {
+      root: { props: {} },
+      content: [
+        { type: 'Container', props: { id: 'c1', children: [null] } },
+      ],
+    }
+    expect(() => validateData(data, config)).toThrow(GissenValidationError)
+  })
+
+  it('reports a GissenValidationError for a slot child missing props', () => {
+    const data = {
+      root: { props: {} },
+      content: [
+        { type: 'Container', props: { id: 'c1', children: [{ type: 'Card' }] } },
+      ],
+    }
+    let error: unknown
+    try {
+      validateData(data, config)
+    }
+    catch (e) {
+      error = e
+    }
+    expect(error).toBeInstanceOf(GissenValidationError)
+    expect((error as GissenValidationError).message).toMatch(/props/)
+  })
+
+  it('reports a GissenValidationError for a primitive slot child', () => {
+    const data = {
+      root: { props: {} },
+      content: [
+        { type: 'Container', props: { id: 'c1', children: [42] } },
+      ],
+    }
+    expect(() => validateData(data, config)).toThrow(GissenValidationError)
+  })
+
   it('throws when an empty-string id is given to a nested child', () => {
     const data = {
       root: { props: {} },

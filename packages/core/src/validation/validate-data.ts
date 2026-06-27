@@ -11,6 +11,28 @@ interface RawComponent { type: string, props: Record<string, unknown> }
 function validateComponent(component: RawComponent, config: GissenConfig, basePath: Path): ZodIssue[] {
   const issues: ZodIssue[] = []
 
+  // Nested slot children arrive unvalidated (they live under
+  // `.catchall(z.unknown())`), so the node may not even be a well-formed object.
+  // Reject non-objects / missing props here, before touching `.type` / `.props`,
+  // so a null or primitive child yields a GissenValidationError instead of a
+  // native TypeError.
+  if (component === null || typeof component !== 'object') {
+    issues.push({
+      code: 'custom',
+      message: 'Component must be an object with type and props',
+      path: [...basePath],
+    })
+    return issues
+  }
+  if (component.props === null || typeof component.props !== 'object') {
+    issues.push({
+      code: 'custom',
+      message: 'Component is missing a "props" object',
+      path: [...basePath, 'props'],
+    })
+    return issues
+  }
+
   // The top-level data schema only enforces `id` on `content[]`; nested slot
   // children live under `.catchall(z.unknown())` and reach here unvalidated.
   // Every node must carry a non-empty string id or selection/move/render break.
@@ -118,7 +140,11 @@ function validateComponent(component: RawComponent, config: GissenConfig, basePa
           const child = value[index] as RawComponent
           const childPath: Path = [...valuePath, index]
 
-          if (field.allow && !field.allow.includes(child.type)) {
+          // The allow-list check only applies to well-formed children; a
+          // malformed child (null/primitive) is reported by the recursive call,
+          // which guards its shape — guard here too so `child.type` never throws.
+          const isObject = child !== null && typeof child === 'object'
+          if (field.allow && isObject && !field.allow.includes(child.type)) {
             issues.push({
               code: 'custom',
               message: `Component type "${child.type}" is not allowed in slot "${fieldName}" (allowed: ${field.allow.join(', ')})`,

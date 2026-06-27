@@ -36,6 +36,16 @@ const config: GissenConfig = {
       },
       render: mockRender,
     },
+    // A container whose defaultProps declare a child with a HARDCODED id.
+    Hardcoded: {
+      fields: {
+        children: { type: 'slot' },
+      },
+      defaultProps: {
+        children: [{ type: 'Empty', props: { id: 'fixed-card' } }],
+      },
+      render: mockRender,
+    },
     // A container whose defaultProps declare children WITHOUT ids.
     Seeded: {
       fields: {
@@ -206,5 +216,16 @@ describe('createComponent', () => {
     expect(children[0].props.id).toHaveLength(10)
     expect(children[1].props.id).toHaveLength(10)
     expect(children[1].props.children![0].props.id).toHaveLength(10)
+  })
+
+  it('regenerates hardcoded child ids so repeated instances do not collide', () => {
+    const a = createComponent('Hardcoded', config)
+    const b = createComponent('Hardcoded', config)
+    const aChild = (a.props.children as Array<{ props: { id: string } }>)[0]
+    const bChild = (b.props.children as Array<{ props: { id: string } }>)[0]
+    // The literal 'fixed-card' must not survive — each instance gets a fresh id.
+    expect(aChild.props.id).not.toBe('fixed-card')
+    expect(aChild.props.id).toHaveLength(10)
+    expect(aChild.props.id).not.toBe(bChild.props.id)
   })
 })

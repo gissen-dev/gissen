@@ -1,9 +1,28 @@
 import type { ComponentData, GissenConfig, GissenData } from '../types'
-import { ensureId, generateId } from './id'
+import { generateId } from './id'
 
 /** Returns the canonical empty page state: an empty root and no content. */
 export function createEmptyData(): GissenData {
   return { root: { props: {} }, content: [] }
+}
+
+/**
+ * Assigns a fresh id to every child found in the component's slot fields,
+ * recursively. Unlike `ensureId` (which preserves existing ids), this always
+ * regenerates: a brand-new instance must not reuse ids hardcoded in
+ * `defaultProps`, or two instances would collide and break find/move/remove.
+ */
+function regenerateChildIds(component: ComponentData): void {
+  for (const value of Object.values(component.props)) {
+    if (!Array.isArray(value))
+      continue
+    for (const child of value as ComponentData[]) {
+      if (child === null || typeof child !== 'object')
+        continue
+      child.props = { ...child.props, id: generateId() }
+      regenerateChildIds(child)
+    }
+  }
 }
 
 /**
@@ -28,9 +47,7 @@ export function createComponent(type: string, config: GissenConfig): ComponentDa
       slotDefaults[name] = []
   }
 
-  // ensureId fills ids on any children declared inside defaultProps slots, so a
-  // new instance never enters the tree with id-less descendants.
-  return ensureId({
+  const component: ComponentData = {
     type,
     props: {
       ...slotDefaults,
@@ -39,5 +56,10 @@ export function createComponent(type: string, config: GissenConfig): ComponentDa
       ...structuredClone(componentConfig.defaultProps ?? {}),
       id: generateId(),
     },
-  })
+  }
+
+  // Give every child declared in defaultProps slots a fresh id so repeated
+  // instances never share ids (and id-less children get one).
+  regenerateChildIds(component)
+  return component
 }
