@@ -1,0 +1,56 @@
+name: Bug report
+description: Report something that isn't working as expected
+title: "[Bug]: "
+labels: ["Bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! Gissen is in pre-alpha, so
+        some rough edges are expected — but a clear report helps a lot.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+      placeholder: When I drag a component into a nested slot, ...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps (or a link to a minimal repro repo / StackBlitz).
+      placeholder: |
+        1. Register a config with a Container slot
+        2. Drag a Hero into it
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: Affected package
+      description: Which package? (e.g. gissen, gissen-mcp, create-gissen-app, docs)
+      placeholder: gissen
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Versions that might matter.
+      placeholder: |
+        - gissen version:
+        - vue version:
+        - node version:
+        - OS / browser:
+    validations:
+      required: false
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Logs, screenshots, recordings — whatever helps.
+    validations:
+      required: false

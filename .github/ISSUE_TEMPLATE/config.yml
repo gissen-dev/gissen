@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & ideas
+    url: https://github.com/gissen-dev/gissen/discussions
+    about: For open-ended questions, usage help, and ideas, please start a Discussion.
+  - name: Documentation
+    url: https://gissen.dev
+    about: Read the docs (work in progress).
