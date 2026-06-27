@@ -7,7 +7,8 @@ import { findComponent, isAncestorOf } from '../utils/tree'
 export interface EditorStore {
   readonly config: GissenConfig
   data: GissenData
-  selectedId: string | null
+  /** Read-only: mutate via selectComponent / removeComponent, never assign. */
+  readonly selectedId: string | null
   insertComponent: (type: string, parentId: string | null, slotName: string | null, index: number) => void
   moveComponent: (id: string, newParentId: string | null, newSlotName: string | null, newIndex: number) => void
   removeComponent: (id: string) => void

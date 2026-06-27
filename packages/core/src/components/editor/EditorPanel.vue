@@ -17,7 +17,7 @@ const selectedType = computed(() => {
     <div class="gissen-panel__header">
       Properties
     </div>
-    <div v-if="!store.selectedId" class="gissen-panel__empty">
+    <div v-if="!selectedType" class="gissen-panel__empty">
       Nothing selected
     </div>
     <div v-else class="gissen-panel__selected-type">

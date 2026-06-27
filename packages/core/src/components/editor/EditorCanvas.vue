@@ -7,14 +7,17 @@ import CanvasNode from './CanvasNode.vue'
 
 const store = useEditorStore()
 
-useSelection()
+// `rootEl` is focusable (tabindex="-1"): clicking anywhere on the canvas focuses
+// it, scoping keyboard shortcuts to this editor instance.
+const rootEl = ref<HTMLElement | null>(null)
+useSelection(rootEl)
 
 const innerEl = ref<HTMLElement | null>(null)
 useCanvasZoneDnD(innerEl, () => ({ parentId: null, slotName: null }))
 </script>
 
 <template>
-  <main class="gissen-canvas">
+  <main ref="rootEl" class="gissen-canvas" tabindex="-1">
     <div ref="innerEl" class="gissen-canvas__inner">
       <div v-if="store.data.content.length === 0" class="gissen-canvas__empty">
         <p class="gissen-canvas__empty-title">

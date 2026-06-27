@@ -1,7 +1,7 @@
 import type { Component } from 'vue'
 import type { GissenConfig, GissenData } from '../../src/types'
 import { mount } from '@vue/test-utils'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, ref } from 'vue'
 import { createEditorStore, provideEditorStore } from '../../src/composables/useEditorStore'
 import { useCanvasZoneDnD, useSidebarDnD } from '../../src/composables/useGissenDnD'
@@ -307,59 +307,72 @@ describe('useCanvasZoneDnD — put (cycle prevention)', () => {
 // ── useSelection ───────────────────────────────────────────────────────────
 
 describe('useSelection', () => {
+  // Renders a focusable editor root containing an input and a contenteditable,
+  // and wires useSelection to that root. The listener is scoped to the root, so
+  // tests dispatch events on it (or its descendants) — not on `document`.
   function mountSelection(store = createEditorStore(testConfig, makeData())) {
     mockUseDraggable.mockClear()
     const Comp = defineComponent({
-      setup() { useSelection() },
-      render() { return h('div') },
+      setup() {
+        const elRef = ref<HTMLElement | null>(null)
+        useSelection(elRef)
+        return { elRef }
+      },
+      render() {
+        return h('div', { 'ref': 'elRef', 'tabindex': -1, 'data-test': 'root' }, [
+          h('input', { 'data-test': 'inner-input' }),
+          h('div', { 'data-test': 'inner-editable', 'contenteditable': 'true' }),
+        ])
+      },
     })
     const Wrapper = defineComponent({
       setup() { provideEditorStore(store) },
       render() { return h(Comp) },
     })
-    return { wrapper: mount(Wrapper, { attachTo: document.body }), store }
+    const wrapper = mount(Wrapper, { attachTo: document.body })
+    const root = wrapper.get('[data-test="root"]').element as HTMLElement
+    const input = wrapper.get('[data-test="inner-input"]').element as HTMLElement
+    const editable = wrapper.get('[data-test="inner-editable"]').element as HTMLElement
+    // jsdom does not derive isContentEditable from the attribute; force it.
+    Object.defineProperty(editable, 'isContentEditable', { value: true, configurable: true })
+    return { wrapper, store, root, input, editable }
   }
 
-  afterEach(() => {
-    // Clean up any lingering keydown listeners between tests
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
-  })
-
-  it('deselects on Escape', async () => {
-    const { store } = mountSelection()
+  it('deselects on Escape', () => {
+    const { store, root } = mountSelection()
     store.selectComponent('some-id')
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    root.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     expect(store.selectedId).toBeNull()
   })
 
-  it('removes selected component on Delete', async () => {
+  it('removes selected component on Delete', () => {
     const btn = { type: 'Button', props: { id: 'del-1', label: 'Del' } }
     const store = createEditorStore(testConfig, makeData({ content: [btn] as never }))
     store.selectComponent('del-1')
-    mountSelection(store)
+    const { root } = mountSelection(store)
 
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }))
+    root.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }))
     expect(store.data.content).toHaveLength(0)
     expect(store.selectedId).toBeNull()
   })
 
-  it('removes selected component on Backspace', async () => {
+  it('removes selected component on Backspace', () => {
     const btn = { type: 'Button', props: { id: 'del-2', label: 'Del' } }
     const store = createEditorStore(testConfig, makeData({ content: [btn] as never }))
     store.selectComponent('del-2')
-    mountSelection(store)
+    const { root } = mountSelection(store)
 
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }))
+    root.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }))
     expect(store.data.content).toHaveLength(0)
   })
 
-  it('does nothing on Delete when nothing is selected', async () => {
+  it('does nothing on Delete when nothing is selected', () => {
     const btn = { type: 'Button', props: { id: 'del-3', label: 'Del' } }
     const store = createEditorStore(testConfig, makeData({ content: [btn] as never }))
     // No selectComponent call — selectedId is null
-    mountSelection(store)
+    const { root } = mountSelection(store)
 
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }))
+    root.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }))
     expect(store.data.content).toHaveLength(1)
   })
 
@@ -367,37 +380,49 @@ describe('useSelection', () => {
     const btn = { type: 'Button', props: { id: 'keep-1', label: 'Keep' } }
     const store = createEditorStore(testConfig, makeData({ content: [btn] as never }))
     store.selectComponent('keep-1')
-    mountSelection(store)
+    const { input } = mountSelection(store)
 
-    const input = document.createElement('input')
-    document.body.appendChild(input)
-    input.focus()
-
-    const event = new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true })
-    input.dispatchEvent(event)
+    // Event bubbles from the input (inside the editor) up to the root listener.
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }))
 
     expect(store.data.content).toHaveLength(1)
     expect(store.selectedId).toBe('keep-1')
-
-    document.body.removeChild(input)
   })
 
   it('does not delete on Delete from a contenteditable element', () => {
     const btn = { type: 'Button', props: { id: 'keep-2', label: 'Keep' } }
     const store = createEditorStore(testConfig, makeData({ content: [btn] as never }))
     store.selectComponent('keep-2')
-    mountSelection(store)
-
-    const editable = document.createElement('div')
-    editable.setAttribute('contenteditable', 'true')
-    // jsdom does not derive isContentEditable from the attribute; force it.
-    Object.defineProperty(editable, 'isContentEditable', { value: true })
-    document.body.appendChild(editable)
+    const { editable } = mountSelection(store)
 
     editable.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }))
 
     expect(store.data.content).toHaveLength(1)
+  })
 
-    document.body.removeChild(editable)
+  it('ignores Delete when the event is outside the editor root', () => {
+    const btn = { type: 'Button', props: { id: 'out-1', label: 'Outside' } }
+    const store = createEditorStore(testConfig, makeData({ content: [btn] as never }))
+    store.selectComponent('out-1')
+    mountSelection(store)
+
+    // Dispatched on document.body (an ancestor) — never reaches the root listener.
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }))
+
+    expect(store.data.content).toHaveLength(1)
+    expect(store.selectedId).toBe('out-1')
+  })
+
+  it('clears a stale selection instead of throwing on Delete', () => {
+    // selectedId points at a node that is not in the tree (e.g. data replaced
+    // externally while something was selected).
+    const store = createEditorStore(testConfig, makeData())
+    store.selectComponent('ghost')
+    const { root } = mountSelection(store)
+
+    expect(() =>
+      root.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true })),
+    ).not.toThrow()
+    expect(store.selectedId).toBeNull()
   })
 })
