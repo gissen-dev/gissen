@@ -1,7 +1,7 @@
 name: Feature request / proposal
 description: Suggest an idea, an API, or an improvement
-title: "[Proposal]: "
-labels: ["Enhancement"]
+title: '[Proposal]: '
+labels: [Enhancement]
 body:
   - type: markdown
     attributes:
@@ -38,8 +38,8 @@ body:
       label: Does this touch core?
       description: Best-guess. Core changes get a careful review round.
       options:
-        - "No — docs / example / tests / tooling"
-        - "Maybe — not sure"
-        - "Yes — editor component / config API / public types"
+        - No — docs / example / tests / tooling
+        - Maybe — not sure
+        - Yes — editor component / config API / public types
     validations:
       required: false
