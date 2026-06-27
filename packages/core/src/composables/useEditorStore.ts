@@ -1,6 +1,6 @@
-import type { Ref } from 'vue'
+import type { MaybeRefOrGetter, Ref } from 'vue'
 import type { ComponentData, GissenConfig, GissenData } from '../types'
-import { inject, isRef, provide, reactive, ref } from 'vue'
+import { inject, isRef, provide, reactive, ref, toValue } from 'vue'
 import { createComponent } from '../utils'
 import { findComponent, isAncestorOf } from '../utils/tree'
 
@@ -14,7 +14,10 @@ export interface EditorStore {
   selectComponent: (id: string | null) => void
 }
 
-export function createEditorStore(config: GissenConfig, initialData: GissenData | Ref<GissenData>): EditorStore {
+export function createEditorStore(
+  config: MaybeRefOrGetter<GissenConfig>,
+  initialData: GissenData | Ref<GissenData>,
+): EditorStore {
   // Single source of truth: when a Ref (the v-model) is passed, the store
   // mutates it directly so edits propagate to the parent with no extra sync.
   const data: Ref<GissenData> = isRef(initialData) ? initialData : (ref(initialData) as Ref<GissenData>)
@@ -22,14 +25,26 @@ export function createEditorStore(config: GissenConfig, initialData: GissenData 
     selectedId: null as string | null,
   })
 
+  // `config` may be a getter/ref so the store tracks a reactive `config` prop;
+  // `toValue` resolves it on each access.
+  const getConfig = (): GissenConfig => toValue(config)
+
+  // After an in-place mutation, reassign a fresh top-level object so the
+  // v-model emits `update:data` — splicing nested arrays alone does not trigger
+  // the emit. Nested arrays keep their identity (already mutated above), so this
+  // is a cheap shallow clone, not a deep copy.
+  const commit = (): void => {
+    data.value = { ...data.value }
+  }
+
   return {
-    get config() { return config },
+    get config() { return getConfig() },
     get data() { return data.value },
     set data(v: GissenData) { data.value = v },
     get selectedId() { return state.selectedId },
 
     insertComponent(type, parentId, slotName, index) {
-      const component = createComponent(type, config)
+      const component = createComponent(type, getConfig())
       if (parentId === null) {
         data.value.content.splice(index, 0, component)
       }
@@ -45,6 +60,7 @@ export function createEditorStore(config: GissenConfig, initialData: GissenData 
         }
         ;(slot as ComponentData[]).splice(index, 0, component)
       }
+      commit()
     },
 
     moveComponent(id, newParentId, newSlotName, newIndex) {
@@ -86,6 +102,7 @@ export function createEditorStore(config: GissenConfig, initialData: GissenData 
         }
         ;(slot as ComponentData[]).splice(adjustedIndex, 0, component)
       }
+      commit()
     },
 
     removeComponent(id) {
@@ -96,6 +113,7 @@ export function createEditorStore(config: GissenConfig, initialData: GissenData 
       if (state.selectedId === id) {
         state.selectedId = null
       }
+      commit()
     },
 
     selectComponent(id) {

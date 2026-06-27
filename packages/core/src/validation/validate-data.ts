@@ -10,6 +10,19 @@ interface RawComponent { type: string, props: Record<string, unknown> }
 
 function validateComponent(component: RawComponent, config: GissenConfig, basePath: Path): ZodIssue[] {
   const issues: ZodIssue[] = []
+
+  // The top-level data schema only enforces `id` on `content[]`; nested slot
+  // children live under `.catchall(z.unknown())` and reach here unvalidated.
+  // Every node must carry a non-empty string id or selection/move/render break.
+  const id = component.props?.id
+  if (typeof id !== 'string' || id.length === 0) {
+    issues.push({
+      code: 'custom',
+      message: `Component "${component.type}" is missing a required "id" (must be a non-empty string)`,
+      path: [...basePath, 'props', 'id'],
+    })
+  }
+
   const componentConfig = config.components[component.type]
 
   if (!componentConfig) {
@@ -125,7 +138,9 @@ function validateComponent(component: RawComponent, config: GissenConfig, basePa
 
 /**
  * Validates a `GissenData` page tree against a given `GissenConfig`.
- * Performs full recursive validation of slot children.
+ * Performs full recursive validation of slot children, including that every
+ * node (at any depth) has a non-empty string `id` and only known, well-typed
+ * props.
  * Throws `GissenValidationError` on failure; returns typed data on success.
  * Error issues include the path to the invalid node (e.g. `content[0].props.features[1].props.title`).
  */

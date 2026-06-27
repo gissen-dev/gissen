@@ -1,5 +1,5 @@
 import type { ComponentData, GissenConfig, GissenData } from '../types'
-import { generateId } from './id'
+import { ensureId, generateId } from './id'
 
 /** Returns the canonical empty page state: an empty root and no content. */
 export function createEmptyData(): GissenData {
@@ -28,7 +28,9 @@ export function createComponent(type: string, config: GissenConfig): ComponentDa
       slotDefaults[name] = []
   }
 
-  return {
+  // ensureId fills ids on any children declared inside defaultProps slots, so a
+  // new instance never enters the tree with id-less descendants.
+  return ensureId({
     type,
     props: {
       ...slotDefaults,
@@ -37,5 +39,5 @@ export function createComponent(type: string, config: GissenConfig): ComponentDa
       ...structuredClone(componentConfig.defaultProps ?? {}),
       id: generateId(),
     },
-  }
+  })
 }

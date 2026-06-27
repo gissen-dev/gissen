@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { GissenConfig } from '../../types'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useSidebarDnD } from '../../composables/useGissenDnD'
 
 const props = defineProps<{ config: GissenConfig }>()
 
-const componentTypes = Object.keys(props.config.components)
+// Computed so a swapped `config` prop updates the palette.
+const componentTypes = computed(() => Object.keys(props.config.components))
 
 const listEl = ref<HTMLElement | null>(null)
 useSidebarDnD(listEl)

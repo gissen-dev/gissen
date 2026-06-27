@@ -195,6 +195,49 @@ describe('validateData', () => {
     expect(() => validateData(data, config)).toThrow(GissenValidationError)
   })
 
+  it('throws when a nested slot child is missing its id', () => {
+    const data = {
+      root: { props: {} },
+      content: [
+        {
+          type: 'Container',
+          props: {
+            id: 'c1',
+            children: [
+              // No id on this child — must be rejected, not silently accepted.
+              { type: 'Card', props: { label: 'Hello' } },
+            ],
+          },
+        },
+      ],
+    }
+    let error: GissenValidationError | null = null
+    try {
+      validateData(data, config)
+    }
+    catch (e) {
+      error = e as GissenValidationError
+    }
+    expect(error).toBeInstanceOf(GissenValidationError)
+    expect(error!.message).toMatch(/children\[0\]\.props\.id/)
+  })
+
+  it('throws when an empty-string id is given to a nested child', () => {
+    const data = {
+      root: { props: {} },
+      content: [
+        {
+          type: 'Container',
+          props: {
+            id: 'c1',
+            children: [{ type: 'Card', props: { id: '', label: 'Hello' } }],
+          },
+        },
+      ],
+    }
+    expect(() => validateData(data, config)).toThrow(GissenValidationError)
+  })
+
   it('throws when data is not an object', () => {
     expect(() => validateData(null, config)).toThrow(GissenValidationError)
     expect(() => validateData('string', config)).toThrow(GissenValidationError)

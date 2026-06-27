@@ -36,6 +36,20 @@ const config: GissenConfig = {
       },
       render: mockRender,
     },
+    // A container whose defaultProps declare children WITHOUT ids.
+    Seeded: {
+      fields: {
+        children: { type: 'slot' },
+      },
+      defaultProps: {
+        // Intentionally id-less children to exercise createComponent's ensureId.
+        children: [
+          { type: 'Empty', props: {} as never },
+          { type: 'Empty', props: { children: [{ type: 'Empty', props: {} as never }] } as never },
+        ],
+      },
+      render: mockRender,
+    },
   },
 }
 
@@ -70,6 +84,59 @@ describe('ensureId', () => {
     const result = ensureId(component)
     expect(result.props.title).toBe('Hello')
     expect(result.props.count).toBe(5)
+  })
+
+  it('fills ids on nested slot children recursively', () => {
+    const tree = {
+      type: 'Container',
+      props: {
+        id: '',
+        children: [
+          { type: 'Text', props: { id: '', body: 'a' } },
+          {
+            type: 'Container',
+            props: {
+              id: 'inner-has-id',
+              children: [{ type: 'Text', props: { id: '', body: 'deep' } }],
+            },
+          },
+        ],
+      },
+    }
+    const result = ensureId(tree)
+    const children = result.props.children as Array<{ props: { id: string, children?: Array<{ props: { id: string } }> } }>
+    expect(result.props.id).toHaveLength(10)
+    expect(children[0].props.id).toHaveLength(10)
+    expect(children[1].props.id).toBe('inner-has-id')
+    expect(children[1].props.children![0].props.id).toHaveLength(10)
+  })
+
+  it('returns the same reference when the whole subtree already has ids', () => {
+    const tree = {
+      type: 'Container',
+      props: {
+        id: 'root',
+        children: [{ type: 'Text', props: { id: 'child', body: 'a' } }],
+      },
+    }
+    const result = ensureId(tree)
+    expect(result).toBe(tree)
+  })
+
+  it('returns a new object but leaves untouched children by reference', () => {
+    const okChild = { type: 'Text', props: { id: 'ok', body: 'a' } }
+    const tree = {
+      type: 'Container',
+      props: {
+        id: '', // missing → forces a new root
+        children: [okChild],
+      },
+    }
+    const result = ensureId(tree)
+    expect(result).not.toBe(tree)
+    const children = result.props.children as unknown[]
+    // The child already had an id, so it is reused, not cloned.
+    expect(children[0]).toBe(okChild)
   })
 })
 
@@ -131,5 +198,13 @@ describe('createComponent', () => {
     expect(component.props.header).toEqual([])
     // body has an explicit default → preserved
     expect((component.props.body as Array<{ type: string }>)[0].type).toBe('Empty')
+  })
+
+  it('assigns ids to id-less children declared in defaultProps (recursively)', () => {
+    const component = createComponent('Seeded', config)
+    const children = component.props.children as Array<{ props: { id: string, children?: Array<{ props: { id: string } }> } }>
+    expect(children[0].props.id).toHaveLength(10)
+    expect(children[1].props.id).toHaveLength(10)
+    expect(children[1].props.children![0].props.id).toHaveLength(10)
   })
 })

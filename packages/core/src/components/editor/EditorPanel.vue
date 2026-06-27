@@ -1,28 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useEditorStore } from '../../composables/useEditorStore'
+import { findComponent } from '../../utils/tree'
 
 const store = useEditorStore()
 
 const selectedType = computed(() => {
   if (!store.selectedId)
     return null
-  const content = store.data.content
-  function find(nodes: typeof content): string | null {
-    for (const node of nodes) {
-      if (node.props.id === store.selectedId)
-        return node.type
-      for (const [, val] of Object.entries(node.props)) {
-        if (Array.isArray(val)) {
-          const found = find(val as typeof content)
-          if (found)
-            return found
-        }
-      }
-    }
-    return null
-  }
-  return find(content)
+  return findComponent(store.data, store.selectedId)?.component.type ?? null
 })
 </script>
 

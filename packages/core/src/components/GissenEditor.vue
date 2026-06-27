@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { GissenConfig, GissenData } from '../types'
+import { watch } from 'vue'
 import { createEditorStore, provideEditorStore } from '../composables/useEditorStore'
 import { validateConfig } from '../validation'
 import EditorCanvas from './editor/EditorCanvas.vue'
@@ -13,13 +14,17 @@ const modelData = defineModel<GissenData>('data', { required: true })
 // Runs synchronously (no DOM needed) so it also guards SSR.
 validateConfig(props.config)
 
-// The store mutates the v-model ref directly — single source of truth, so
-// edits propagate to the parent and external replacement is read back for
-// free, with no sync watchers.
-// TODO: replace in-place mutation with immutable updates (new `data` object
-// per change) so v-model emits a fresh reference, enabling undo/redo and
-// snapshot-based propagation. Tracked separately as variant A.
-const store = createEditorStore(props.config, modelData)
+// `config` is reactive: passing a getter lets the store, sidebar and canvas
+// react to a swapped config instead of silently keeping the original. Each new
+// config is re-validated (fail fast on a malformed replacement).
+watch(() => props.config, config => validateConfig(config))
+
+// The store mutates the v-model ref in place, then reassigns a fresh top-level
+// object so `update:data` is emitted on every change. External replacement of
+// `data` is read back through the same ref for free.
+// TODO: deep-immutable updates (new objects for every touched node) for undo/
+// redo and snapshot propagation are still future work — tracked as variant A.
+const store = createEditorStore(() => props.config, modelData)
 provideEditorStore(store)
 </script>
 

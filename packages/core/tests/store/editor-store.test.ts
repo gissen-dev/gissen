@@ -1,7 +1,7 @@
 import type { Component } from 'vue'
 import type { GissenConfig, GissenData } from '../../src/types'
 import { describe, expect, it } from 'vitest'
-import { h } from 'vue'
+import { h, ref } from 'vue'
 import { createEditorStore } from '../../src/composables/useEditorStore'
 
 const Stub: Component = () => h('div')
@@ -142,6 +142,48 @@ describe('createEditorStore', () => {
       store.selectComponent(store.data.content[0].props.id)
       store.selectComponent(null)
       expect(store.selectedId).toBeNull()
+    })
+  })
+
+  describe('v-model propagation (fresh top-level reference)', () => {
+    it('reassigns a new data object on insert so update:data fires', () => {
+      const dataRef = ref<GissenData>(emptyData())
+      const before = dataRef.value
+      const store = createEditorStore(config, dataRef)
+      store.insertComponent('Hero', null, null, 0)
+      expect(dataRef.value).not.toBe(before)
+      expect(dataRef.value.content).toHaveLength(1)
+    })
+
+    it('reassigns a new data object on remove', () => {
+      const dataRef = ref<GissenData>(emptyData())
+      const store = createEditorStore(config, dataRef)
+      store.insertComponent('Hero', null, null, 0)
+      const afterInsert = dataRef.value
+      const id = dataRef.value.content[0].props.id
+      store.removeComponent(id)
+      expect(dataRef.value).not.toBe(afterInsert)
+    })
+
+    it('reassigns a new data object on move', () => {
+      const dataRef = ref<GissenData>(emptyData())
+      const store = createEditorStore(config, dataRef)
+      store.insertComponent('Hero', null, null, 0)
+      store.insertComponent('Text', null, null, 1)
+      const afterInserts = dataRef.value
+      store.moveComponent(dataRef.value.content[0].props.id, null, null, 2)
+      expect(dataRef.value).not.toBe(afterInserts)
+    })
+  })
+
+  describe('reactive config', () => {
+    it('reflects a config provided as a getter', () => {
+      let current = config
+      const store = createEditorStore(() => current, emptyData())
+      expect(store.config).toBe(config)
+      const replacement: GissenConfig = { components: {} }
+      current = replacement
+      expect(store.config).toBe(replacement)
     })
   })
 
