@@ -13,6 +13,11 @@ export default defineConfig({
     }),
   ],
   build: {
+    // Ship the library unminified: consumers' bundlers minify on their side, and
+    // the (rolldown/oxc) minifier in Vite 8 can emit an invalid bundle with a
+    // duplicate top-level identifier that downstream Rollup (Vite 7) rejects
+    // ("Identifier 'h' has already been declared").
+    minify: false,
     lib: {
       entry: fileURLToPath(new URL('src/index.ts', import.meta.url)),
       name: 'GissenCore',
