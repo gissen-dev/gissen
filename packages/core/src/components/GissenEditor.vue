@@ -2,7 +2,7 @@
 import type { GissenConfig, GissenData } from '../types'
 import { watch } from 'vue'
 import { createEditorStore, provideEditorStore } from '../composables/useEditorStore'
-import { validateConfig } from '../validation'
+import { validateConfig, validateData } from '../validation'
 import EditorCanvas from './editor/EditorCanvas.vue'
 import EditorPanel from './editor/EditorPanel.vue'
 import EditorSidebar from './editor/EditorSidebar.vue'
@@ -13,6 +13,13 @@ const modelData = defineModel<GissenData>('data', { required: true })
 // Fail fast on a malformed config, before the store is built from it.
 // Runs synchronously (no DOM needed) so it also guards SSR.
 validateConfig(props.config)
+
+// Validate the initial data the same way, so a malformed `data` prop (wrong
+// shape, missing ids, props not matching the config) surfaces a clear
+// GissenValidationError at mount instead of a cryptic runtime crash deeper in
+// the editor. Only the initial value is checked — re-validating on every edit
+// would be wasteful, and the store keeps the tree valid from there.
+validateData(modelData.value, props.config)
 
 // `config` is reactive: passing a getter lets the store, sidebar and canvas
 // react to a swapped config instead of silently keeping the original. Each new
