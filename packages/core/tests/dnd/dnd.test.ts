@@ -362,4 +362,42 @@ describe('useSelection', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }))
     expect(store.data.content).toHaveLength(1)
   })
+
+  it('does not delete the selected component on Backspace from an input field', () => {
+    const btn = { type: 'Button', props: { id: 'keep-1', label: 'Keep' } }
+    const store = createEditorStore(testConfig, makeData({ content: [btn] as never }))
+    store.selectComponent('keep-1')
+    mountSelection(store)
+
+    const input = document.createElement('input')
+    document.body.appendChild(input)
+    input.focus()
+
+    const event = new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true })
+    input.dispatchEvent(event)
+
+    expect(store.data.content).toHaveLength(1)
+    expect(store.selectedId).toBe('keep-1')
+
+    document.body.removeChild(input)
+  })
+
+  it('does not delete on Delete from a contenteditable element', () => {
+    const btn = { type: 'Button', props: { id: 'keep-2', label: 'Keep' } }
+    const store = createEditorStore(testConfig, makeData({ content: [btn] as never }))
+    store.selectComponent('keep-2')
+    mountSelection(store)
+
+    const editable = document.createElement('div')
+    editable.setAttribute('contenteditable', 'true')
+    // jsdom does not derive isContentEditable from the attribute; force it.
+    Object.defineProperty(editable, 'isContentEditable', { value: true })
+    document.body.appendChild(editable)
+
+    editable.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }))
+
+    expect(store.data.content).toHaveLength(1)
+
+    document.body.removeChild(editable)
+  })
 })

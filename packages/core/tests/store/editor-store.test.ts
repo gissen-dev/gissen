@@ -18,6 +18,11 @@ const config: GissenConfig = {
       defaultProps: { children: [] },
       render: Stub,
     },
+    // Regression: a slot component WITHOUT a defaultProps slot default.
+    BareContainer: {
+      fields: { children: { type: 'slot' } },
+      render: Stub,
+    },
     Text: {
       fields: { body: { type: 'text' } },
       defaultProps: { body: '' },
@@ -63,6 +68,17 @@ describe('createEditorStore', () => {
       store.insertComponent('Hero', null, null, 1)
       const ids = store.data.content.map(c => c.props.id)
       expect(ids[0]).not.toBe(ids[1])
+    })
+
+    it('inserts into the slot of a container that has no defaultProps', () => {
+      const store = createEditorStore(config, emptyData())
+      store.insertComponent('BareContainer', null, null, 0)
+      const containerId = store.data.content[0].props.id
+      // Must not throw even though the config declared no `children` default.
+      expect(() => store.insertComponent('Text', containerId, 'children', 0)).not.toThrow()
+      const children = store.data.content[0].props.children as Array<{ type: string }>
+      expect(children).toHaveLength(1)
+      expect(children[0].type).toBe('Text')
     })
 
     it('throws for an unknown component type', () => {

@@ -18,6 +18,24 @@ const config: GissenConfig = {
       fields: {},
       render: mockRender,
     },
+    // A container whose slot field has NO default — the regression case.
+    Container: {
+      fields: {
+        children: { type: 'slot' },
+      },
+      render: mockRender,
+    },
+    // A container with two slots, one of which has an explicit default.
+    TwoSlot: {
+      fields: {
+        header: { type: 'slot' },
+        body: { type: 'slot' },
+      },
+      defaultProps: {
+        body: [{ type: 'Empty', props: { id: 'preset' } }],
+      },
+      render: mockRender,
+    },
   },
 }
 
@@ -93,5 +111,25 @@ describe('createComponent', () => {
     const a = createComponent('Hero', config)
     const b = createComponent('Hero', config)
     expect(a.props.id).not.toBe(b.props.id)
+  })
+
+  it('initializes a slot field to [] when no default is given', () => {
+    const component = createComponent('Container', config)
+    expect(Array.isArray(component.props.children)).toBe(true)
+    expect(component.props.children).toEqual([])
+  })
+
+  it('gives each instance its own slot array (not shared)', () => {
+    const a = createComponent('Container', config)
+    const b = createComponent('Container', config)
+    expect(a.props.children).not.toBe(b.props.children)
+  })
+
+  it('keeps an explicit slot default over the auto-initialized []', () => {
+    const component = createComponent('TwoSlot', config)
+    // header has no default → auto-initialized empty
+    expect(component.props.header).toEqual([])
+    // body has an explicit default → preserved
+    expect((component.props.body as Array<{ type: string }>)[0].type).toBe('Empty')
   })
 })
