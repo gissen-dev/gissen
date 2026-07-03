@@ -100,6 +100,12 @@
   contain: layout style;
 }
 
+/* The canvas is focusable (tabindex="-1") to scope keyboard shortcuts; it is
+   focused programmatically via click, so suppress the focus ring. */
+.gissen-canvas:focus {
+  outline: none;
+}
+
 .gissen-canvas__inner {
   padding: 24px;
   min-height: 100%;
@@ -168,6 +174,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   height: 100%;
   min-height: 150px;
   border: 1px dashed var(--gissen-border-strong);
@@ -208,13 +215,169 @@
   font-size: 12px;
 }
 
-.gissen-panel__selected-type {
+/* ── Property fields ───────────────────────────────────── */
+
+.gissen-panel__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   padding: 14px;
-  font-size: 13px;
+}
+
+.gissen-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.gissen-field__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   color: var(--gissen-text-muted);
 }
 
-.gissen-panel__selected-type strong {
+.gissen-field__input,
+.gissen-field__textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--gissen-text);
+  background: var(--gissen-bg);
+  border: 1px solid var(--gissen-border-strong);
+  border-radius: var(--gissen-radius);
+  transition: border-color 120ms, box-shadow 120ms;
+}
+
+.gissen-field__textarea {
+  min-height: 60px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.gissen-field__input:focus,
+.gissen-field__textarea:focus {
+  outline: none;
+  border-color: var(--gissen-accent);
+  box-shadow: 0 0 0 2px var(--gissen-accent-light);
+}
+
+.gissen-field__input:disabled {
+  background: var(--gissen-surface);
+  color: var(--gissen-text-faint);
+  cursor: not-allowed;
+}
+
+/* Boolean — Reka Switch */
+
+.gissen-field__switch {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--gissen-border-strong);
+  cursor: pointer;
+  transition: background 120ms;
+}
+
+.gissen-field__switch[data-state="checked"] {
+  background: var(--gissen-accent);
+}
+
+.gissen-field__switch:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--gissen-accent-light);
+}
+
+.gissen-field__switch-thumb {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #fff;
+  transform: translateX(2px);
+  transition: transform 120ms;
+  will-change: transform;
+}
+
+.gissen-field__switch-thumb[data-state="checked"] {
+  transform: translateX(16px);
+}
+
+/* Select — Reka Select */
+
+.gissen-select__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--gissen-text);
+  background: var(--gissen-bg);
+  border: 1px solid var(--gissen-border-strong);
+  border-radius: var(--gissen-radius);
+  cursor: pointer;
+  transition: border-color 120ms, box-shadow 120ms;
+}
+
+.gissen-select__trigger:focus-visible,
+.gissen-select__trigger[data-state="open"] {
+  outline: none;
+  border-color: var(--gissen-accent);
+  box-shadow: 0 0 0 2px var(--gissen-accent-light);
+}
+
+.gissen-select__chevron {
+  font-size: 10px;
+  color: var(--gissen-text-faint);
+}
+
+.gissen-select__content {
+  z-index: 50;
+  min-width: var(--reka-select-trigger-width);
+  overflow: hidden;
+  background: var(--gissen-bg);
+  border: 1px solid var(--gissen-border);
+  border-radius: var(--gissen-radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.gissen-select__viewport {
+  padding: 4px;
+}
+
+.gissen-select__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+  color: var(--gissen-text);
+  border-radius: var(--gissen-radius);
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.gissen-select__item[data-highlighted] {
+  background: var(--gissen-accent-light);
+  color: var(--gissen-accent);
+}
+
+.gissen-select__item-indicator {
+  display: inline-flex;
+  width: 12px;
   color: var(--gissen-accent);
 }
 

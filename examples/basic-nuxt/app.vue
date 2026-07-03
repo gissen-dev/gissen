@@ -36,6 +36,8 @@ const data = ref<GissenData>({
               icon: '🧩',
               title: 'Headless',
               description: 'Your components, your styles. Gissen is a runtime, not a UI framework.',
+              badge: 1,
+              highlighted: true,
             },
           },
           {
@@ -45,6 +47,8 @@ const data = ref<GissenData>({
               icon: '🔷',
               title: 'Type-safe',
               description: 'Prop types are inferred from your field definitions. Mismatches are caught at compile time.',
+              badge: 2,
+              highlighted: false,
             },
           },
           {
@@ -54,6 +58,8 @@ const data = ref<GissenData>({
               icon: '🤖',
               title: 'Agent-native',
               description: 'An MCP server lets AI agents build pages programmatically — same JSON, same config.',
+              badge: 3,
+              highlighted: false,
             },
           },
         ],

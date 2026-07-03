@@ -12,6 +12,8 @@ export interface EditorStore {
   insertComponent: (type: string, parentId: string | null, slotName: string | null, index: number) => void
   moveComponent: (id: string, newParentId: string | null, newSlotName: string | null, newIndex: number) => void
   removeComponent: (id: string) => void
+  /** Writes a single prop value on the component with the given id, then commits. */
+  updateProp: (id: string, key: string, value: unknown) => void
   selectComponent: (id: string | null) => void
 }
 
@@ -114,6 +116,20 @@ export function createEditorStore(
       if (state.selectedId === id) {
         state.selectedId = null
       }
+      commit()
+    },
+
+    updateProp(id, key, value) {
+      // Resolve the target node by id (locked decision: bind by id, never to a
+      // free-floating "current selection") and write the value onto that node.
+      const result = findComponent(data.value, id)
+      if (!result)
+        throw new Error(`[Gissen] Component "${id}" not found`)
+      // `props` carries the component id plus its field values; `key` is always a
+      // real value field name (the panel never edits `id` or slot fields).
+      result.component.props[key] = value
+      // Reassign the top-level object so the v-model emits `update:data`; the
+      // canvas already reacts to the in-place mutation on the reactive tree.
       commit()
     },
 

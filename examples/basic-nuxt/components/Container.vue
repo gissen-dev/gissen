@@ -39,7 +39,7 @@ defineProps<{
   align-items: stretch;
   flex: 1;
 }
-.container-block :deep(.gissen-slot > *) {
+.container-block :deep(.gissen-slot > .gissen-node) {
   flex: 1;
   min-width: 240px;
 }
