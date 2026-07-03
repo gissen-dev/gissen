@@ -20,7 +20,7 @@ const config: GissenConfig = {
 }
 
 function validData(): GissenData {
-  return { root: { props: {} }, content: [{ type: 'Hero', props: { id: 'h1', title: 'Hi' } }] }
+  return { version: 1, root: { props: {} }, content: [{ type: 'Hero', props: { id: 'h1', title: 'Hi' } }] }
 }
 
 describe('gissenEditor', () => {

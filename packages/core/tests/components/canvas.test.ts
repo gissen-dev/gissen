@@ -35,7 +35,7 @@ const testConfig: GissenConfig = {
 }
 
 function emptyData(): GissenData {
-  return { root: { props: {} }, content: [] }
+  return { version: 1, root: { props: {} }, content: [] }
 }
 
 /** Mounts a component inside a wrapper that provides the editor store. */

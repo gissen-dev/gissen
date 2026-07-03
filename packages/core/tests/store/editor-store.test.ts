@@ -32,7 +32,7 @@ const config: GissenConfig = {
 }
 
 function emptyData(): GissenData {
-  return { root: { props: {} }, content: [] }
+  return { version: 1, root: { props: {} }, content: [] }
 }
 
 describe('createEditorStore', () => {

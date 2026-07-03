@@ -1,9 +1,12 @@
 import type { ComponentData, GissenConfig, GissenData } from '../types'
 import { generateId } from './id'
 
+/** Current schema version stamped onto newly created `GissenData`. */
+export const GISSEN_DATA_VERSION = 1
+
 /** Returns the canonical empty page state: an empty root and no content. */
 export function createEmptyData(): GissenData {
-  return { root: { props: {} }, content: [] }
+  return { version: GISSEN_DATA_VERSION, root: { props: {} }, content: [] }
 }
 
 /**

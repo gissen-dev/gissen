@@ -37,7 +37,7 @@ const testConfig: GissenConfig = {
 }
 
 function makeData(overrides: Partial<GissenData> = {}): GissenData {
-  return { root: { props: {} }, content: [], ...overrides }
+  return { version: 1, root: { props: {} }, content: [], ...overrides }
 }
 
 function makeFakeEl(attrs: Record<string, string> = {}): HTMLElement {

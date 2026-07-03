@@ -24,6 +24,11 @@ export interface RootData<TProps = Record<string, unknown>> {
  * loaded as JSON.
  */
 export interface GissenData<TRootProps = Record<string, unknown>> {
+  /**
+   * Schema version of this serialized envelope. Starts at 1. No migration layer
+   * exists yet (alpha); this field exists so future versions can branch on it.
+   */
+  version: number
   root: RootData<TRootProps>
   content: ComponentData[]
 }

@@ -68,6 +68,20 @@ describe('validateData', () => {
     expect(() => validateData(emptyData, { components: {} })).not.toThrow()
   })
 
+  it('round-trips a numeric version field', () => {
+    const result = validateData({ ...emptyData, version: 1 }, config)
+    expect(result.version).toBe(1)
+  })
+
+  it('accepts data with an absent version (no migration layer yet)', () => {
+    const result = validateData(emptyData, config)
+    expect(result.version).toBeUndefined()
+  })
+
+  it('throws GissenValidationError for a non-numeric version', () => {
+    expect(() => validateData({ ...emptyData, version: 'v1' }, config)).toThrow(GissenValidationError)
+  })
+
   it('throws GissenValidationError for an unknown component type', () => {
     const data = {
       root: { props: {} },
