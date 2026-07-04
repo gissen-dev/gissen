@@ -4,8 +4,8 @@ defineProps<{
   icon: string
   title: string
   description: string
-  badge?: number
-  highlighted?: boolean
+  badge: number
+  highlighted: boolean
 }>()
 </script>
 

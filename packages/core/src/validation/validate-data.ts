@@ -1,5 +1,5 @@
 import type { ZodIssue } from 'zod'
-import type { GissenConfig, GissenData } from '../types'
+import type { FieldConfig, GissenConfig, GissenData } from '../types'
 import { ZodError } from 'zod'
 import { gissenDataSchema } from './data-schemas'
 import { GissenValidationError } from './errors'
@@ -7,6 +7,112 @@ import { GissenValidationError } from './errors'
 type Path = (string | number)[]
 
 interface RawComponent { type: string, props: Record<string, unknown> }
+
+/**
+ * Validates a single field value against its field config, appending any issues.
+ * Shared by component props and root props. `min`/`max` on number fields are
+ * enforced here so imported data honors the same constraints the panel does.
+ * (`step` is a UI-only affordance and is not range-checked.)
+ */
+function validateFieldValue(
+  field: FieldConfig,
+  value: unknown,
+  fieldName: string,
+  valuePath: Path,
+  config: GissenConfig,
+  issues: ZodIssue[],
+): void {
+  switch (field.type) {
+    case 'text':
+    case 'textarea':
+      if (typeof value !== 'string') {
+        issues.push({
+          code: 'custom',
+          message: `Prop "${fieldName}" must be a string (got ${typeof value})`,
+          path: valuePath,
+        })
+      }
+      break
+
+    case 'number':
+      if (typeof value !== 'number') {
+        issues.push({
+          code: 'custom',
+          message: `Prop "${fieldName}" must be a number (got ${typeof value})`,
+          path: valuePath,
+        })
+        break
+      }
+      if (field.min !== undefined && value < field.min) {
+        issues.push({
+          code: 'custom',
+          message: `Prop "${fieldName}" must be >= ${field.min} (got ${value})`,
+          path: valuePath,
+        })
+      }
+      if (field.max !== undefined && value > field.max) {
+        issues.push({
+          code: 'custom',
+          message: `Prop "${fieldName}" must be <= ${field.max} (got ${value})`,
+          path: valuePath,
+        })
+      }
+      break
+
+    case 'boolean':
+      if (typeof value !== 'boolean') {
+        issues.push({
+          code: 'custom',
+          message: `Prop "${fieldName}" must be a boolean (got ${typeof value})`,
+          path: valuePath,
+        })
+      }
+      break
+
+    case 'select': {
+      const allowed = field.options.map((option: { value: string | number }) => option.value)
+      if (!allowed.includes(value as string | number)) {
+        issues.push({
+          code: 'custom',
+          message: `Prop "${fieldName}" value "${String(value)}" is not among select options: ${allowed.map(String).join(', ')}`,
+          path: valuePath,
+        })
+      }
+      break
+    }
+
+    case 'slot': {
+      if (!Array.isArray(value)) {
+        issues.push({
+          code: 'custom',
+          message: `Prop "${fieldName}" must be an array (slot field)`,
+          path: valuePath,
+        })
+        break
+      }
+
+      for (let index = 0; index < value.length; index++) {
+        const child = value[index] as RawComponent
+        const childPath: Path = [...valuePath, index]
+
+        // The allow-list check only applies to well-formed children; a
+        // malformed child (null/primitive) is reported by the recursive call,
+        // which guards its shape — guard here too so `child.type` never throws.
+        const isObject = child !== null && typeof child === 'object'
+        if (field.allow && isObject && !field.allow.includes(child.type)) {
+          issues.push({
+            code: 'custom',
+            message: `Component type "${child.type}" is not allowed in slot "${fieldName}" (allowed: ${field.allow.join(', ')})`,
+            path: [...childPath, 'type'],
+          })
+        }
+
+        issues.push(...validateComponent(child, config, childPath))
+      }
+      break
+    }
+  }
+}
 
 function validateComponent(component: RawComponent, config: GissenConfig, basePath: Path): ZodIssue[] {
   const issues: ZodIssue[] = []
@@ -82,81 +188,51 @@ function validateComponent(component: RawComponent, config: GissenConfig, basePa
       continue
     }
 
-    switch (field.type) {
-      case 'text':
-      case 'textarea':
-        if (typeof value !== 'string') {
-          issues.push({
-            code: 'custom',
-            message: `Prop "${fieldName}" must be a string (got ${typeof value})`,
-            path: valuePath,
-          })
-        }
-        break
+    validateFieldValue(field, value, fieldName, valuePath, config, issues)
+  }
 
-      case 'number':
-        if (typeof value !== 'number') {
-          issues.push({
-            code: 'custom',
-            message: `Prop "${fieldName}" must be a number (got ${typeof value})`,
-            path: valuePath,
-          })
-        }
-        break
+  return issues
+}
 
-      case 'boolean':
-        if (typeof value !== 'boolean') {
-          issues.push({
-            code: 'custom',
-            message: `Prop "${fieldName}" must be a boolean (got ${typeof value})`,
-            path: valuePath,
-          })
-        }
-        break
+/**
+ * Validates `data.root.props` against `config.root.fields` (M-4). Only runs when
+ * the config declares root fields; a root with no configured fields is accepted
+ * as-is. Root has no `id`, so unlike components no key is exempt from the
+ * unknown-key check.
+ */
+function validateRootProps(
+  rootProps: Record<string, unknown>,
+  rootFields: Record<string, FieldConfig>,
+  config: GissenConfig,
+): ZodIssue[] {
+  const issues: ZodIssue[] = []
+  const propsPath: Path = ['root', 'props']
+  const fieldKeys = new Set(Object.keys(rootFields))
 
-      case 'select': {
-        const allowed = field.options.map((option: { value: string | number }) => option.value)
-        if (!allowed.includes(value as string | number)) {
-          issues.push({
-            code: 'custom',
-            message: `Prop "${fieldName}" value "${String(value)}" is not among select options: ${allowed.map(String).join(', ')}`,
-            path: valuePath,
-          })
-        }
-        break
-      }
-
-      case 'slot': {
-        if (!Array.isArray(value)) {
-          issues.push({
-            code: 'custom',
-            message: `Prop "${fieldName}" must be an array (slot field)`,
-            path: valuePath,
-          })
-          break
-        }
-
-        for (let index = 0; index < value.length; index++) {
-          const child = value[index] as RawComponent
-          const childPath: Path = [...valuePath, index]
-
-          // The allow-list check only applies to well-formed children; a
-          // malformed child (null/primitive) is reported by the recursive call,
-          // which guards its shape — guard here too so `child.type` never throws.
-          const isObject = child !== null && typeof child === 'object'
-          if (field.allow && isObject && !field.allow.includes(child.type)) {
-            issues.push({
-              code: 'custom',
-              message: `Component type "${child.type}" is not allowed in slot "${fieldName}" (allowed: ${field.allow.join(', ')})`,
-              path: [...childPath, 'type'],
-            })
-          }
-
-          issues.push(...validateComponent(child, config, childPath))
-        }
-        break
-      }
+  for (const key of Object.keys(rootProps)) {
+    if (!fieldKeys.has(key)) {
+      issues.push({
+        code: 'custom',
+        message: `Prop "${key}" is not defined in root fields`,
+        path: [...propsPath, key],
+      })
     }
+  }
+
+  for (const [fieldName, field] of Object.entries(rootFields)) {
+    const value = rootProps[fieldName]
+    const valuePath: Path = [...propsPath, fieldName]
+
+    if (value === undefined) {
+      issues.push({
+        code: 'custom',
+        message: `Required root prop "${fieldName}" is missing`,
+        path: valuePath,
+      })
+      continue
+    }
+
+    validateFieldValue(field, value, fieldName, valuePath, config, issues)
   }
 
   return issues
@@ -167,8 +243,10 @@ function validateComponent(component: RawComponent, config: GissenConfig, basePa
  * Performs full recursive validation of slot children, including that every
  * node (at any depth) has a non-empty string `id` and only known, well-typed
  * props.
- * Throws `GissenValidationError` on failure; returns typed data on success.
- * Error issues include the path to the invalid node (e.g. `content[0].props.features[1].props.title`).
+ * When the config declares `root.fields`, `data.root.props` is validated against
+ * them too. Throws `GissenValidationError` on failure; returns typed data on
+ * success. Error issues include the path to the invalid node (e.g.
+ * `content[0].props.features[1].props.title`).
  */
 export function validateData(data: unknown, config: GissenConfig): GissenData {
   const parsed = gissenDataSchema.safeParse(data)
@@ -181,9 +259,15 @@ export function validateData(data: unknown, config: GissenConfig): GissenData {
     issues.push(...validateComponent(parsed.data.content[index], config, ['content', index]))
   }
 
+  // Validate root props against the configured root fields, when present.
+  const rootFields = config.root?.fields
+  if (rootFields) {
+    issues.push(...validateRootProps(parsed.data.root.props, rootFields, config))
+  }
+
   if (issues.length > 0) {
     throw new GissenValidationError(new ZodError(issues))
   }
 
-  return parsed.data as GissenData
+  return parsed.data
 }

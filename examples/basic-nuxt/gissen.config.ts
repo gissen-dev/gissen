@@ -8,15 +8,15 @@ export default defineGissenConfig({
   components: {
     Hero: {
       fields: {
-        title: { type: 'text' as const, label: 'Title' },
-        subtitle: { type: 'textarea' as const, label: 'Subtitle' },
+        title: { type: 'text', label: 'Title' },
+        subtitle: { type: 'textarea', label: 'Subtitle' },
         cta: {
-          type: 'select' as const,
+          type: 'select',
           label: 'CTA',
           options: [
             { label: 'Get started free', value: 'get-started' },
             { label: 'Learn more', value: 'learn-more' },
-          ] as const,
+          ],
         },
       },
       defaultProps: {
@@ -28,8 +28,8 @@ export default defineGissenConfig({
     },
     TextBlock: {
       fields: {
-        heading: { type: 'text' as const, label: 'Heading' },
-        body: { type: 'textarea' as const, label: 'Body' },
+        heading: { type: 'text', label: 'Heading' },
+        body: { type: 'textarea', label: 'Body' },
       },
       defaultProps: {
         heading: 'How it works',
@@ -39,23 +39,24 @@ export default defineGissenConfig({
     },
     FeatureCard: {
       fields: {
-        icon: { type: 'text' as const, label: 'Icon (emoji)' },
-        title: { type: 'text' as const, label: 'Title' },
-        description: { type: 'textarea' as const, label: 'Description' },
-        badge: { type: 'number' as const, label: 'Badge number' },
-        highlighted: { type: 'boolean' as const, label: 'Highlighted' },
+        icon: { type: 'text', label: 'Icon (emoji)' },
+        title: { type: 'text', label: 'Title' },
+        description: { type: 'textarea', label: 'Description' },
+        badge: { type: 'number', label: 'Badge number' },
+        highlighted: { type: 'boolean', label: 'Highlighted' },
       },
       defaultProps: {
         icon: '⚡',
         title: 'Feature',
         description: 'Describe what makes this feature great.',
+        badge: 1,
         highlighted: false,
       },
       render: FeatureCard,
     },
     Container: {
       fields: {
-        children: { type: 'slot' as const, label: 'Children' },
+        children: { type: 'slot', label: 'Children' },
       },
       defaultProps: { children: [] },
       render: Container,

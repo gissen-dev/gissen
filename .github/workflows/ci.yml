@@ -26,6 +26,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # apps/docs and examples/basic-nuxt resolve `gissen` types from
+      # packages/core/dist, which is gitignored — build core before typecheck.
+      - name: Build core
+        run: pnpm --filter gissen build
+
       - name: Typecheck
         run: pnpm typecheck
 

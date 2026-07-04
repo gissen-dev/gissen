@@ -32,6 +32,33 @@ function parseDraft(s: string): number | undefined {
   return Number.isFinite(n) ? n : undefined
 }
 
+// Snap `n` to the nearest `step` increment measured from `base`, guarding the
+// floating-point drift that repeated step addition introduces (e.g. 0.1 * 3).
+function snapToStep(n: number, step: number, base: number): number {
+  const snapped = base + Math.round((n - base) / step) * step
+  return Number.parseFloat(snapped.toPrecision(12))
+}
+
+// Apply the field's min/max/step constraints to a committed value. Clamp to the
+// range, snap to the step grid (anchored at min, or 0), then re-clamp in case a
+// snap nudged past a bound.
+function normalize(n: number): number {
+  const { min, max, step } = props.field
+  let result = n
+  if (min !== undefined)
+    result = Math.max(result, min)
+  if (max !== undefined)
+    result = Math.min(result, max)
+  if (step !== undefined && step > 0) {
+    result = snapToStep(result, step, min ?? 0)
+    if (min !== undefined)
+      result = Math.max(result, min)
+    if (max !== undefined)
+      result = Math.min(result, max)
+  }
+  return result
+}
+
 // Seed on mount and re-seed when the model value changes externally (e.g. the
 // `data` prop is replaced upstream) — but only when it disagrees with what the
 // draft already represents, so committing a value mid-type never resets the
@@ -52,8 +79,24 @@ function onInput(e: Event): void {
   }
   const parsed = parseDraft(next)
   // Intermediate, non-parseable drafts leave the model untouched (no thrash).
+  // The value is written as-typed here; min/max/step are applied on commit
+  // (blur) so typing is never fought mid-keystroke. (locked decision: clamp on
+  // commit; invalid drafts follow the existing draft rules)
   if (parsed !== undefined)
     setValue(parsed)
+}
+
+// On blur the field is committed: a valid draft is normalized to the field's
+// min/max/step and both the model and the visible draft are updated. Empty or
+// non-parseable drafts are left untouched (existing draft rules).
+function onBlur(): void {
+  const parsed = parseDraft(draft.value)
+  if (parsed === undefined)
+    return
+  const normalized = normalize(parsed)
+  draft.value = toDraft(normalized)
+  if (normalized !== value.value)
+    setValue(normalized)
 }
 </script>
 
@@ -65,5 +108,6 @@ function onInput(e: Event): void {
     inputmode="decimal"
     :value="draft"
     @input="onInput"
+    @blur="onBlur"
   >
 </template>

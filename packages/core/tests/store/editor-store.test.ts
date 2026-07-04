@@ -1,7 +1,7 @@
 import type { Component } from 'vue'
 import type { GissenConfig, GissenData } from '../../src/types'
-import { describe, expect, it } from 'vitest'
-import { h, ref } from 'vue'
+import { describe, expect, it, vi } from 'vitest'
+import { h, ref, shallowRef } from 'vue'
 import { createEditorStore } from '../../src/composables/useEditorStore'
 
 const Stub: Component = () => h('div')
@@ -26,6 +26,11 @@ const config: GissenConfig = {
     Text: {
       fields: { body: { type: 'text' } },
       defaultProps: { body: '' },
+      render: Stub,
+    },
+    // A slot restricted to Text children via `allow`.
+    TextOnlyContainer: {
+      fields: { children: { type: 'slot', allow: ['Text'] } },
       render: Stub,
     },
   },
@@ -127,6 +132,51 @@ describe('createEditorStore', () => {
     })
   })
 
+  describe('updateProp', () => {
+    it('writes a value onto the resolved node', () => {
+      const store = createEditorStore(config, emptyData())
+      store.insertComponent('Hero', null, null, 0)
+      const id = store.data.content[0].props.id
+      store.updateProp(id, 'title', 'Changed')
+      expect(store.data.content[0].props.title).toBe('Changed')
+    })
+
+    it('refuses to edit the reserved "id" prop (H-3)', () => {
+      const store = createEditorStore(config, emptyData())
+      store.insertComponent('Hero', null, null, 0)
+      const id = store.data.content[0].props.id
+      expect(() => store.updateProp(id, 'id', 'hijacked')).toThrow(/reserved/)
+      // Identity must be intact.
+      expect(store.data.content[0].props.id).toBe(id)
+    })
+
+    it('throws when the target id is not found', () => {
+      const store = createEditorStore(config, emptyData())
+      expect(() => store.updateProp('missing', 'title', 'x')).toThrow()
+    })
+
+    it('updates a prop on a nested slot child', () => {
+      const store = createEditorStore(config, emptyData())
+      store.insertComponent('Container', null, null, 0)
+      const containerId = store.data.content[0].props.id
+      store.insertComponent('Text', containerId, 'children', 0)
+      const child = (store.data.content[0].props.children as Array<{ props: { id: string, body: string } }>)[0]
+      store.updateProp(child.props.id, 'body', 'nested value')
+      const after = (store.data.content[0].props.children as Array<{ props: { body: string } }>)[0]
+      expect(after.props.body).toBe('nested value')
+    })
+
+    it('reassigns a fresh top-level data object so update:data fires', () => {
+      const dataRef = ref<GissenData>(emptyData())
+      const store = createEditorStore(config, dataRef)
+      store.insertComponent('Hero', null, null, 0)
+      const before = dataRef.value
+      store.updateProp(dataRef.value.content[0].props.id, 'title', 'Changed')
+      expect(dataRef.value).not.toBe(before)
+      expect(dataRef.value.content[0].props.title).toBe('Changed')
+    })
+  })
+
   describe('selectComponent', () => {
     it('sets selectedId', () => {
       const store = createEditorStore(config, emptyData())
@@ -176,6 +226,29 @@ describe('createEditorStore', () => {
     })
   })
 
+  describe('deep-reactivity dev guard (M-2/M-3)', () => {
+    it('warns when the bound data is not deeply reactive (shallowRef)', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      createEditorStore(config, shallowRef(emptyData()))
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('not deeply reactive'))
+      warn.mockRestore()
+    })
+
+    it('does not warn for a deeply reactive ref', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      createEditorStore(config, ref(emptyData()))
+      expect(warn).not.toHaveBeenCalled()
+      warn.mockRestore()
+    })
+
+    it('does not warn for a plain object (wrapped in a reactive ref internally)', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      createEditorStore(config, emptyData())
+      expect(warn).not.toHaveBeenCalled()
+      warn.mockRestore()
+    })
+  })
+
   describe('reactive config', () => {
     it('reflects a config provided as a getter', () => {
       let current = config
@@ -184,6 +257,60 @@ describe('createEditorStore', () => {
       const replacement: GissenConfig = { components: {} }
       current = replacement
       expect(store.config).toBe(replacement)
+    })
+  })
+
+  describe('slot allow enforcement', () => {
+    it('inserts an allowed type into a restricted slot', () => {
+      const store = createEditorStore(config, emptyData())
+      store.insertComponent('TextOnlyContainer', null, null, 0)
+      const containerId = store.data.content[0].props.id
+      store.insertComponent('Text', containerId, 'children', 0)
+      const children = store.data.content[0].props.children as Array<{ type: string }>
+      expect(children).toHaveLength(1)
+      expect(children[0].type).toBe('Text')
+    })
+
+    it('rejects inserting a disallowed type into a restricted slot', () => {
+      const store = createEditorStore(config, emptyData())
+      store.insertComponent('TextOnlyContainer', null, null, 0)
+      const containerId = store.data.content[0].props.id
+      expect(() => store.insertComponent('Hero', containerId, 'children', 0))
+        .toThrow(/not allowed in slot "children"/)
+      expect((store.data.content[0].props.children as unknown[])).toHaveLength(0)
+    })
+
+    it('rejects moving a disallowed component into a restricted slot and leaves the tree untouched', () => {
+      const store = createEditorStore(config, emptyData())
+      store.insertComponent('TextOnlyContainer', null, null, 0)
+      store.insertComponent('Hero', null, null, 1)
+      const containerId = store.data.content[0].props.id
+      const heroId = store.data.content[1].props.id
+      expect(() => store.moveComponent(heroId, containerId, 'children', 0))
+        .toThrow(/not allowed in slot "children"/)
+      // The Hero must still be at its original top-level position.
+      expect(store.data.content).toHaveLength(2)
+      expect(store.data.content[1].props.id).toBe(heroId)
+      expect((store.data.content[0].props.children as unknown[])).toHaveLength(0)
+    })
+
+    it('moves an allowed component into a restricted slot', () => {
+      const store = createEditorStore(config, emptyData())
+      store.insertComponent('TextOnlyContainer', null, null, 0)
+      store.insertComponent('Text', null, null, 1)
+      const containerId = store.data.content[0].props.id
+      const textId = store.data.content[1].props.id
+      store.moveComponent(textId, containerId, 'children', 0)
+      expect(store.data.content).toHaveLength(1)
+      const children = store.data.content[0].props.children as Array<{ props: { id: string } }>
+      expect(children[0].props.id).toBe(textId)
+    })
+
+    it('leaves unrestricted slots permissive', () => {
+      const store = createEditorStore(config, emptyData())
+      store.insertComponent('Container', null, null, 0)
+      const containerId = store.data.content[0].props.id
+      expect(() => store.insertComponent('Hero', containerId, 'children', 0)).not.toThrow()
     })
   })
 

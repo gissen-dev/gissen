@@ -12,6 +12,13 @@ export const componentConfigSchema = z
     ),
   })
   .refine(
+    config => !Object.hasOwn(config.fields, 'id'),
+    {
+      message: '"id" is a reserved prop key and cannot be used as a field name — it is the node identity used for selection, move, and removal',
+      path: ['fields', 'id'],
+    },
+  )
+  .refine(
     (config) => {
       if (!config.defaultProps)
         return true

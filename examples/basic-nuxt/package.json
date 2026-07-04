@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "TMPDIR=/tmp nuxt dev",
     "build": "nuxt build",
-    "preview": "nuxt preview"
+    "preview": "nuxt preview",
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
     "gissen": "workspace:*"
   },
   "devDependencies": {
-    "nuxt": "^4.4.7"
+    "nuxt": "^4.4.7",
+    "vue-tsc": "^3.3.6"
   }
 }

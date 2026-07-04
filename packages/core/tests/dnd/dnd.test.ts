@@ -33,6 +33,11 @@ const testConfig: GissenConfig = {
       defaultProps: { items: [] },
       render: Stub,
     },
+    Restricted: {
+      fields: { items: { type: 'slot', allow: ['Button'] } },
+      defaultProps: { items: [] },
+      render: Stub,
+    },
   },
 }
 
@@ -80,12 +85,14 @@ function mountWithDnD(
 
 describe('useSidebarDnD', () => {
   it('initializes with clone pull and no put', () => {
-    const { options } = mountWithDnD(() => {
+    const { store, options } = mountWithDnD(() => {
       const el = ref<HTMLElement | null>(null)
       useSidebarDnD(el)
     })
     const group = options.group as Record<string, unknown>
-    expect(group.name).toBe('gissen')
+    // The group name is per-instance (M-1), shared with this store's canvas.
+    expect(group.name).toBe(store.dndGroup)
+    expect(store.dndGroup).toMatch(/^gissen-/)
     expect(group.pull).toBe('clone')
     expect(group.put).toBe(false)
   })
@@ -96,6 +103,52 @@ describe('useSidebarDnD', () => {
       useSidebarDnD(el)
     })
     expect(options.sort).toBe(false)
+  })
+})
+
+// ── Per-instance group isolation (M-1) ─────────────────────────────────────
+
+describe('dnd group isolation', () => {
+  it('gives each editor store a unique group name', () => {
+    const a = createEditorStore(testConfig, makeData())
+    const b = createEditorStore(testConfig, makeData())
+    expect(a.dndGroup).not.toBe(b.dndGroup)
+  })
+
+  it('shares one group name between an editor\'s sidebar and canvas zones', () => {
+    const store = createEditorStore(testConfig, makeData())
+
+    const { options: sidebar } = mountWithDnD(() => {
+      const el = ref<HTMLElement | null>(null)
+      useSidebarDnD(el)
+    }, store)
+    const { options: canvas } = mountWithDnD(() => {
+      const el = ref<HTMLElement | null>(null)
+      useCanvasZoneDnD(el, () => ({ parentId: null, slotName: null }))
+    }, store)
+
+    const sidebarGroup = sidebar.group as Record<string, unknown>
+    const canvasGroup = canvas.group as Record<string, unknown>
+    expect(sidebarGroup.name).toBe(store.dndGroup)
+    expect(canvasGroup.name).toBe(store.dndGroup)
+  })
+
+  it('gives two editors\' canvas zones different group names', () => {
+    const storeA = createEditorStore(testConfig, makeData())
+    const storeB = createEditorStore(testConfig, makeData())
+
+    const { options: a } = mountWithDnD(() => {
+      const el = ref<HTMLElement | null>(null)
+      useCanvasZoneDnD(el, () => ({ parentId: null, slotName: null }))
+    }, storeA)
+    const { options: b } = mountWithDnD(() => {
+      const el = ref<HTMLElement | null>(null)
+      useCanvasZoneDnD(el, () => ({ parentId: null, slotName: null }))
+    }, storeB)
+
+    const nameA = (a.group as Record<string, unknown>).name
+    const nameB = (b.group as Record<string, unknown>).name
+    expect(nameA).not.toBe(nameB)
   })
 })
 
@@ -301,6 +354,51 @@ describe('useCanvasZoneDnD — put (cycle prevention)', () => {
     const group = options.group as Record<string, unknown>
     const putFn = group.put as (to: unknown, from: unknown, dragEl: HTMLElement) => boolean
     expect(putFn({}, {}, makeFakeEl({ gissenId: 'btn-x' }))).toBe(true)
+  })
+})
+
+// ── useCanvasZoneDnD — put (slot allow enforcement) ────────────────────────
+
+describe('useCanvasZoneDnD — put (slot allow enforcement)', () => {
+  function restrictedStore() {
+    const restricted = { type: 'Restricted', props: { id: 'r-1', items: [] as never[] } }
+    const button = { type: 'Button', props: { id: 'btn-1', label: 'B' } }
+    const container = { type: 'Container', props: { id: 'c-1', items: [] as never[] } }
+    return createEditorStore(testConfig, makeData({ content: [restricted, button, container] as never }))
+  }
+
+  function putForZone(zone: { parentId: string | null, slotName: string | null }) {
+    const { options } = mountWithDnD(() => {
+      const el = ref<HTMLElement | null>(null)
+      useCanvasZoneDnD(el, () => zone)
+    }, restrictedStore())
+    const group = options.group as Record<string, unknown>
+    return group.put as (to: unknown, from: unknown, dragEl: HTMLElement) => boolean
+  }
+
+  it('rejects a sidebar clone of a disallowed type', () => {
+    const putFn = putForZone({ parentId: 'r-1', slotName: 'items' })
+    expect(putFn({}, {}, makeFakeEl({ gissenType: 'Container' }))).toBe(false)
+  })
+
+  it('allows a sidebar clone of an allowed type', () => {
+    const putFn = putForZone({ parentId: 'r-1', slotName: 'items' })
+    expect(putFn({}, {}, makeFakeEl({ gissenType: 'Button' }))).toBe(true)
+  })
+
+  it('rejects moving an existing disallowed component into the slot', () => {
+    const putFn = putForZone({ parentId: 'r-1', slotName: 'items' })
+    expect(putFn({}, {}, makeFakeEl({ gissenId: 'c-1' }))).toBe(false)
+  })
+
+  it('allows moving an existing allowed component into the slot', () => {
+    const putFn = putForZone({ parentId: 'r-1', slotName: 'items' })
+    expect(putFn({}, {}, makeFakeEl({ gissenId: 'btn-1' }))).toBe(true)
+  })
+
+  it('keeps top-level drops unrestricted', () => {
+    const putFn = putForZone({ parentId: null, slotName: null })
+    expect(putFn({}, {}, makeFakeEl({ gissenType: 'Container' }))).toBe(true)
   })
 })
 

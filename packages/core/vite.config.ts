@@ -12,6 +12,16 @@ export default defineConfig({
       bundleTypes: true,
     }),
   ],
+  define: {
+    // Rewrite the `__DEV__` guard to a consumer-evaluable expression rather than
+    // baking a fixed value during the library build. The consumer's bundler then
+    // keeps dev-only guards (e.g. the deep-reactivity warning) active in dev and
+    // tree-shakes them in their own production build. The identity mapping for
+    // `process.env.NODE_ENV` stops Vite from collapsing that expression to
+    // 'production' at library-build time.
+    '__DEV__': 'process.env.NODE_ENV !== "production"',
+    'process.env.NODE_ENV': 'process.env.NODE_ENV',
+  },
   build: {
     // Ship the library unminified: consumers' bundlers minify on their side, and
     // the (rolldown/oxc) minifier in Vite 8 can emit an invalid bundle with a

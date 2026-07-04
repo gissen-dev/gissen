@@ -10,6 +10,24 @@ export function createEmptyData(): GissenData {
 }
 
 /**
+ * Returns true when a `childType` component may be placed in the `slotName`
+ * slot of a `parentType` component. Slots without an `allow` list accept every
+ * type. Unknown parent types and non-slot fields are permissive here — those
+ * shapes are reported by validation, not by placement checks.
+ */
+export function isTypeAllowedInSlot(
+  config: GissenConfig,
+  parentType: string,
+  slotName: string,
+  childType: string,
+): boolean {
+  const field = config.components[parentType]?.fields[slotName]
+  if (field === undefined || field.type !== 'slot' || field.allow === undefined)
+    return true
+  return field.allow.includes(childType)
+}
+
+/**
  * Assigns a fresh id to every child found in the component's slot fields,
  * recursively. Unlike `ensureId` (which preserves existing ids), this always
  * regenerates: a brand-new instance must not reuse ids hardcoded in

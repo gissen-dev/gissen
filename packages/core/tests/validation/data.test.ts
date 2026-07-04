@@ -321,4 +321,103 @@ describe('validateData', () => {
     }
     expect(() => validateData(data, config)).toThrow(GissenValidationError)
   })
+
+  describe('number range checks (H-2)', () => {
+    const rangeConfig: GissenConfig = {
+      components: {
+        Box: {
+          fields: { size: { type: 'number', min: 0, max: 100 } },
+          render: mockRender,
+        },
+      },
+    }
+
+    function boxData(size: number) {
+      return { root: { props: {} }, content: [{ type: 'Box', props: { id: 'b1', size } }] }
+    }
+
+    it('accepts a value within [min, max]', () => {
+      expect(() => validateData(boxData(50), rangeConfig)).not.toThrow()
+    })
+
+    it('accepts the exact min and max bounds', () => {
+      expect(() => validateData(boxData(0), rangeConfig)).not.toThrow()
+      expect(() => validateData(boxData(100), rangeConfig)).not.toThrow()
+    })
+
+    it('throws when a number is below min', () => {
+      expect(() => validateData(boxData(-1), rangeConfig)).toThrow(GissenValidationError)
+    })
+
+    it('throws when a number is above max', () => {
+      expect(() => validateData(boxData(101), rangeConfig)).toThrow(GissenValidationError)
+    })
+
+    it('includes min/max detail in the error message', () => {
+      let error: GissenValidationError | null = null
+      try {
+        validateData(boxData(200), rangeConfig)
+      }
+      catch (e) {
+        error = e as GissenValidationError
+      }
+      expect(error).toBeInstanceOf(GissenValidationError)
+      expect(error!.message).toMatch(/<= 100/)
+    })
+  })
+
+  describe('root props validation (M-4)', () => {
+    const rootConfig: GissenConfig = {
+      components: {},
+      root: {
+        fields: {
+          background: { type: 'text' },
+          columns: { type: 'number', min: 1, max: 12 },
+        },
+      },
+    }
+
+    it('accepts root props matching the configured root fields', () => {
+      const data = { root: { props: { background: '#fff', columns: 3 } }, content: [] }
+      expect(() => validateData(data, rootConfig)).not.toThrow()
+    })
+
+    it('throws when a root prop has the wrong type', () => {
+      const data = { root: { props: { background: 123, columns: 3 } }, content: [] }
+      expect(() => validateData(data, rootConfig)).toThrow(GissenValidationError)
+    })
+
+    it('throws when a required root prop is missing', () => {
+      const data = { root: { props: { background: '#fff' } }, content: [] }
+      expect(() => validateData(data, rootConfig)).toThrow(GissenValidationError)
+    })
+
+    it('throws when a root prop is out of range', () => {
+      const data = { root: { props: { background: '#fff', columns: 99 } }, content: [] }
+      expect(() => validateData(data, rootConfig)).toThrow(GissenValidationError)
+    })
+
+    it('throws when root props contain a key not defined in root fields', () => {
+      const data = { root: { props: { background: '#fff', columns: 3, extra: true } }, content: [] }
+      expect(() => validateData(data, rootConfig)).toThrow(GissenValidationError)
+    })
+
+    it('reports the error path under root.props', () => {
+      const data = { root: { props: { background: 123, columns: 3 } }, content: [] }
+      let error: GissenValidationError | null = null
+      try {
+        validateData(data, rootConfig)
+      }
+      catch (e) {
+        error = e as GissenValidationError
+      }
+      expect(error!.message).toMatch(/root\.props\.background/)
+    })
+
+    it('ignores root props when the config declares no root fields', () => {
+      // `config` has no root.fields — arbitrary root props are accepted as-is.
+      const data = { root: { props: { anything: 'goes', n: 999 } }, content: [] }
+      expect(() => validateData(data, config)).not.toThrow()
+    })
+  })
 })

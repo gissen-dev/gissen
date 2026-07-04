@@ -25,10 +25,13 @@ export interface RootData<TProps = Record<string, unknown>> {
  */
 export interface GissenData<TRootProps = Record<string, unknown>> {
   /**
-   * Schema version of this serialized envelope. Starts at 1. No migration layer
-   * exists yet (alpha); this field exists so future versions can branch on it.
+   * Schema version of this serialized envelope. Starts at 1. Optional to match
+   * the tolerant validator: older or hand-authored data may omit it, and
+   * `validateData` passes it through unchanged. `createEmptyData` stamps `1`.
+   * No migration layer exists yet (alpha); this field exists so future versions
+   * can branch on it.
    */
-  version: number
+  version?: number
   root: RootData<TRootProps>
   content: ComponentData[]
 }

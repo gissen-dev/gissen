@@ -1,17 +1,36 @@
 import type { Ref } from 'vue'
+import type { EditorStore } from './useEditorStore'
 import { useDraggable } from 'vue-draggable-plus'
+import { isTypeAllowedInSlot } from '../utils/data'
 import { findComponent, isAncestorOf } from '../utils/tree'
 import { useEditorStore } from './useEditorStore'
 
-const GROUP_NAME = 'gissen'
+/**
+ * True when a component of `type` may be dropped into the given zone.
+ * Top-level content has no allow list; an unresolvable parent is permissive
+ * here — the store is the authoritative layer and throws on a bad placement.
+ */
+function isAllowedInZone(
+  store: EditorStore,
+  zone: { parentId: string | null, slotName: string | null },
+  type: string,
+): boolean {
+  if (zone.parentId === null || zone.slotName === null)
+    return true
+  const parentResult = findComponent(store.data, zone.parentId)
+  if (!parentResult)
+    return true
+  return isTypeAllowedInSlot(store.config, parentResult.component.type, zone.slotName, type)
+}
 
 /**
  * Attaches a Sortable clone-source to the sidebar list.
  * Each direct child must have `data-gissen-type` set to the component type name.
  */
 export function useSidebarDnD(el: Ref<HTMLElement | null>): void {
+  const store = useEditorStore()
   useDraggable(el, {
-    group: { name: GROUP_NAME, pull: 'clone', put: false },
+    group: { name: store.dndGroup, pull: 'clone', put: false },
     sort: false,
     animation: 0,
     ghostClass: 'gissen-drag-ghost',
@@ -34,19 +53,27 @@ export function useCanvasZoneDnD(
 
   useDraggable(el, {
     group: {
-      name: GROUP_NAME,
+      name: store.dndGroup,
       pull: true,
-      // Reject drops that would create ancestor cycles
+      // Reject drops the store would refuse: slot allow-list violations and
+      // ancestor cycles. This is the visual layer; insertComponent /
+      // moveComponent re-check authoritatively.
       put(_to: unknown, _from: unknown, dragEl: unknown): boolean {
-        const id = (dragEl as HTMLElement).dataset?.gissenId
-        if (!id)
-          return true // sidebar clone — always allowed
+        const el = dragEl as HTMLElement
         const zone = getZone()
+        const id = el.dataset?.gissenId
+        if (!id) {
+          // Sidebar clone — no cycle risk; only the allow-list applies.
+          const type = el.dataset?.gissenType
+          return type === undefined || isAllowedInZone(store, zone, type)
+        }
         if (zone.parentId === id)
           return false // dropping into own slot
         const result = findComponent(store.data, id)
         if (!result)
           return true
+        if (!isAllowedInZone(store, zone, result.component.type))
+          return false
         // Reject if the target parent is a descendant of the dragged component
         return zone.parentId === null || !isAncestorOf(result.component, zone.parentId)
       },

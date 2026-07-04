@@ -105,8 +105,20 @@ export interface ComponentConfig<TFields extends Record<string, FieldConfig> = R
 
 /** Configuration for the page root container. */
 export interface RootConfig<TProps = Record<string, unknown>> {
+  /**
+   * Field editors for the root's own props. When set, `validateData` checks
+   * `data.root.props` against these fields.
+   */
   fields?: Record<string, FieldConfig>
+  /** Default values applied to the root's props. */
   defaultProps?: Partial<TProps>
+  /**
+   * The Vue component wrapping the page content.
+   *
+   * NOT YET IMPLEMENTED: the canvas does not render `root.render` in v0.1 —
+   * content is rendered at the top level with no root wrapper. Declaring it has
+   * no runtime effect today; it is reserved for a future release.
+   */
   render?: Component
 }
 

@@ -47,4 +47,23 @@ describe('gissenEditor', () => {
       mount(GissenEditor, { props: { config: {} as never, data: validData() } }),
     ).toThrow(GissenValidationError)
   })
+
+  it('round-trips a properties-panel edit through update:data', async () => {
+    const wrapper = mount(GissenEditor, { props: { config, data: validData() } })
+
+    // Select the node on the canvas, then edit its title in the panel.
+    await wrapper.find('[data-gissen-id="h1"]').trigger('click')
+    const input = wrapper.find('.gissen-panel input')
+    expect(input.exists()).toBe(true)
+    expect((input.element as HTMLInputElement).value).toBe('Hi')
+
+    await input.setValue('Edited via panel')
+
+    const emissions = wrapper.emitted('update:data')
+    expect(emissions).toBeTruthy()
+    const latest = emissions!.at(-1)![0] as GissenData
+    expect(latest.content[0].props.title).toBe('Edited via panel')
+    // The envelope's version survives the round-trip.
+    expect(latest.version).toBe(1)
+  })
 })

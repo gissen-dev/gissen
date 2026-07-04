@@ -150,6 +150,38 @@ describe('validateConfig', () => {
     expect(error!.issues[0].path).toBeDefined()
   })
 
+  it('throws GissenValidationError when a field is named "id" (reserved key)', () => {
+    const config = {
+      components: {
+        Bad: {
+          fields: { id: { type: 'text' }, title: { type: 'text' } },
+          render: mockRender,
+        },
+      },
+    }
+    expect(() => validateConfig(config)).toThrow(GissenValidationError)
+  })
+
+  it('gives a clear message when a field is named "id"', () => {
+    const config = {
+      components: {
+        Bad: {
+          fields: { id: { type: 'text' } },
+          render: mockRender,
+        },
+      },
+    }
+    let error: GissenValidationError | null = null
+    try {
+      validateConfig(config)
+    }
+    catch (e) {
+      error = e as GissenValidationError
+    }
+    expect(error).toBeInstanceOf(GissenValidationError)
+    expect(error!.message).toMatch(/reserved/)
+  })
+
   it('accepts a valid config with optional root config', () => {
     const config = {
       components: {},
