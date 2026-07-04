@@ -27,7 +27,23 @@ const data = ref<GissenData>({ root: { props: {} }, content: [] })
 | Prop | Type | Required | Description |
 |---|---|---|---|
 | `config` | `GissenConfig` | ✓ | The component registry. See [Config API](./config-api). |
-| `v-model:data` | `GissenData` | ✓ | The page tree. Two-way binding — mutations from inside the editor are reflected back to the parent. |
+| `v-model:data` | `GissenData` | ✓ | The page tree. Two-way binding — mutations from inside the editor are reflected back to the parent. Must be deeply reactive; see below. |
+
+### Reactivity requirement
+
+Bind `data` with `ref()`. The canvas re-renders nested nodes through Vue's deep
+reactive tracking, so a `shallowRef`, a `markRaw` slice, or a plain non-reactive
+object is not supported: the properties panel would update while the canvas
+keeps rendering stale values. Development builds print a console warning when a
+non-reactive `data` is detected.
+
+### Replacing `data` externally
+
+`data` is validated once, at mount; from there the editor keeps the tree valid
+through its own operations. Replacing the bound `data` with a new document at
+runtime is on the caller's honor — the editor does not re-validate it. If you
+swap documents in, run `validateData` (see [Config API](./config-api#runtime-validation))
+on the new value first; malformed data fails at render time, not at the swap.
 
 ## Sizing
 

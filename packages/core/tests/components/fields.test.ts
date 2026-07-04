@@ -76,13 +76,27 @@ describe('numberInput — min/max/step enforcement (H-2)', () => {
     expect(size()).toBe(25)
   })
 
-  it('does not fight typing mid-keystroke (only commits on blur)', async () => {
-    // With max 50, an intermediate over-max draft is written as-typed; the clamp
-    // happens on blur, not per keystroke.
+  it('keeps the model at its last valid value while the draft is out-of-range', async () => {
+    // An over-max draft behaves like an unparseable intermediate: the draft
+    // shows what was typed, but the model never holds an out-of-range number —
+    // every `update:data` snapshot stays valid. Blur normalizes.
     const { input, size } = mountNumberInput({ type: 'number', max: 50 }, 0)
     await input.setValue('500')
-    expect(size()).toBe(500)
+    expect(size()).toBe(0)
+    expect((input.element as HTMLInputElement).value).toBe('500')
     await input.trigger('blur')
+    expect(size()).toBe(50)
+    expect((input.element as HTMLInputElement).value).toBe('50')
+  })
+
+  it('does not clamp mid-typing: a below-min intermediate stays pending until completed', async () => {
+    // Typing "50" under min: 10 passes through "5"; clamping "5" to 10 would
+    // fight the keystroke. The model waits until the draft is in range.
+    const { input, size } = mountNumberInput({ type: 'number', min: 10 }, 20)
+    await input.setValue('5')
+    expect(size()).toBe(20)
+    expect((input.element as HTMLInputElement).value).toBe('5')
+    await input.setValue('50')
     expect(size()).toBe(50)
   })
 

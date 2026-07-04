@@ -90,12 +90,22 @@ describe('validateData', () => {
     expect(() => validateData(data, config)).toThrow(GissenValidationError)
   })
 
-  it('throws when a required text prop is missing', () => {
+  it('accepts a component with an absent prop (value-level tolerance)', () => {
+    // `title` is missing: cleared fields round-trip through JSON as missing
+    // keys, so absence is valid — only present values are type-checked.
     const data = {
       root: { props: {} },
       content: [{ type: 'Hero', props: { id: 'x', count: 0, active: false, size: 'small', items: [] } }],
     }
-    expect(() => validateData(data, config)).toThrow(GissenValidationError)
+    expect(() => validateData(data, config)).not.toThrow()
+  })
+
+  it('accepts a component with a present-but-undefined prop (cleared in memory)', () => {
+    const data = {
+      root: { props: {} },
+      content: [{ type: 'Hero', props: { id: 'x', title: undefined, count: 0, active: false, size: 'small', items: [] } }],
+    }
+    expect(() => validateData(data, config)).not.toThrow()
   })
 
   it('throws when a text prop is given the wrong type (number instead of string)', () => {
@@ -387,9 +397,14 @@ describe('validateData', () => {
       expect(() => validateData(data, rootConfig)).toThrow(GissenValidationError)
     })
 
-    it('throws when a required root prop is missing', () => {
+    it('accepts a root missing a configured prop (value-level tolerance)', () => {
       const data = { root: { props: { background: '#fff' } }, content: [] }
-      expect(() => validateData(data, rootConfig)).toThrow(GissenValidationError)
+      expect(() => validateData(data, rootConfig)).not.toThrow()
+    })
+
+    it('accepts an entirely empty root.props when root fields are configured', () => {
+      const data = { root: { props: {} }, content: [] }
+      expect(() => validateData(data, rootConfig)).not.toThrow()
     })
 
     it('throws when a root prop is out of range', () => {

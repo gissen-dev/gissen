@@ -20,7 +20,7 @@ const config = defineGissenConfig({
           options: [
             { label: 'Sign up', value: 'signup' },
             { label: 'Buy now', value: 'buy' },
-          ] as const,
+          ],
         },
       },
       defaultProps: { title: 'Hello', count: 0, cta: 'signup' },
@@ -78,17 +78,18 @@ const activeField = { type: 'boolean' as const, label: 'Active' }
 
 ### `select`
 
-Use `as const` on the options array to preserve literal value types for TypeScript narrowing:
-
 ```ts
 const variantField = {
   type: 'select' as const,
   options: [
     { label: 'Primary', value: 'primary' },
     { label: 'Secondary', value: 'secondary' },
-  ] as const,
+  ],
 }
 ```
+
+Option value literals are inferred automatically when the config is written
+inline in `defineGissenConfig` — no `as const` on the options array is needed.
 
 ### `slot`
 

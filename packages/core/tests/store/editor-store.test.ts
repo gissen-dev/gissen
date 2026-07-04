@@ -314,6 +314,91 @@ describe('createEditorStore', () => {
     })
   })
 
+  describe('slot normalization (data acceptance)', () => {
+    // A hand-authored document that omits the Container's `children` slot key —
+    // valid data (absent props are tolerated), but store ops assume an array.
+    function slotlessData(): GissenData {
+      return {
+        version: 1,
+        root: { props: {} },
+        content: [{ type: 'Container', props: { id: 'c-1' } }],
+      }
+    }
+
+    it('initializes a missing slot prop to [] at store creation', () => {
+      const store = createEditorStore(config, slotlessData())
+      expect(store.data.content[0].props.children).toEqual([])
+    })
+
+    it('accepts a drop (insert) into a slot that was missing from the document', () => {
+      const store = createEditorStore(config, slotlessData())
+      store.insertComponent('Text', 'c-1', 'children', 0)
+      const children = store.data.content[0].props.children as Array<{ type: string }>
+      expect(children).toHaveLength(1)
+      expect(children[0].type).toBe('Text')
+    })
+
+    it('accepts a move into a slot that was missing from the document', () => {
+      const store = createEditorStore(config, {
+        version: 1,
+        root: { props: {} },
+        content: [
+          { type: 'Container', props: { id: 'c-1' } },
+          { type: 'Text', props: { id: 't-1', body: 'x' } },
+        ],
+      })
+      store.moveComponent('t-1', 'c-1', 'children', 0)
+      const children = store.data.content[0].props.children as Array<{ props: { id: string } }>
+      expect(store.data.content).toHaveLength(1)
+      expect(children[0].props.id).toBe('t-1')
+    })
+
+    it('normalizes nested slot-less components', () => {
+      const store = createEditorStore(config, {
+        version: 1,
+        root: { props: {} },
+        content: [{
+          type: 'Container',
+          props: { id: 'outer', children: [{ type: 'Container', props: { id: 'inner' } }] },
+        }],
+      })
+      store.insertComponent('Text', 'inner', 'children', 0)
+      const outer = store.data.content[0].props.children as Array<{ props: { id: string, children: unknown[] } }>
+      expect(outer[0].props.children).toHaveLength(1)
+    })
+
+    it('normalizes a document replaced through the store', () => {
+      const store = createEditorStore(config, emptyData())
+      store.data = slotlessData()
+      expect(store.data.content[0].props.children).toEqual([])
+      expect(() => store.insertComponent('Text', 'c-1', 'children', 0)).not.toThrow()
+    })
+
+    it('does not clobber existing slot content', () => {
+      const store = createEditorStore(config, {
+        version: 1,
+        root: { props: {} },
+        content: [{
+          type: 'Container',
+          props: { id: 'c-1', children: [{ type: 'Text', props: { id: 't-1', body: 'kept' } }] },
+        }],
+      })
+      const children = store.data.content[0].props.children as Array<{ props: { body: string } }>
+      expect(children).toHaveLength(1)
+      expect(children[0].props.body).toBe('kept')
+    })
+
+    it('leaves unknown component types untouched', () => {
+      // No config entry — validation reports it; normalization invents nothing.
+      const store = createEditorStore(config, {
+        version: 1,
+        root: { props: {} },
+        content: [{ type: 'Mystery', props: { id: 'm-1' } }],
+      })
+      expect('children' in store.data.content[0].props).toBe(false)
+    })
+  })
+
   describe('moveComponent', () => {
     it('moves a component within the top-level list', () => {
       const store = createEditorStore(config, emptyData())

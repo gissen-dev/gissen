@@ -66,4 +66,27 @@ describe('gissenEditor', () => {
     // The envelope's version survives the round-trip.
     expect(latest.version).toBe(1)
   })
+
+  it('mounts a hand-written document that omits a slot key and normalizes it for editing', () => {
+    // A user component that renders its named slot, so the canvas injects the
+    // CanvasSlot drop zone for it (drop-zone DOM itself is covered by
+    // canvas.test.ts — CanvasSlot is async and slow to resolve in jsdom).
+    const SlotStub: Component = (_, { slots }) => h('div', slots.children?.())
+    const slotConfig: GissenConfig = {
+      components: {
+        ...config.components,
+        Container: { fields: { children: { type: 'slot' } }, render: SlotStub },
+      },
+    }
+    // Hand-authored: the `children` slot key is omitted entirely. Absent props
+    // validate at mount, and acceptance-time normalization initializes the
+    // slot to [] in place so it is immediately droppable.
+    const data: GissenData = {
+      version: 1,
+      root: { props: {} },
+      content: [{ type: 'Container', props: { id: 'c1' } }],
+    }
+    expect(() => mount(GissenEditor, { props: { config: slotConfig, data } })).not.toThrow()
+    expect(data.content[0].props.children).toEqual([])
+  })
 })

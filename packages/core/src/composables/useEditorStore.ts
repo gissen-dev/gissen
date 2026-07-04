@@ -2,7 +2,7 @@ import type { MaybeRefOrGetter, Ref } from 'vue'
 import type { ComponentData, GissenConfig, GissenData } from '../types'
 import { inject, isRef, provide, reactive, ref, toRaw, toValue } from 'vue'
 import { createComponent, generateId } from '../utils'
-import { isTypeAllowedInSlot } from '../utils/data'
+import { isTypeAllowedInSlot, normalizeSlotProps } from '../utils/data'
 import { findComponent, isAncestorOf } from '../utils/tree'
 
 export interface EditorStore {
@@ -56,6 +56,15 @@ export function createEditorStore(
   // `toValue` resolves it on each access.
   const getConfig = (): GissenConfig => toValue(config)
 
+  // Data-acceptance normalization: hand-authored documents may omit slot keys
+  // (absent props are valid), but store operations assume a slot prop is
+  // always an array. Initialize missing slots to [] here — the same guarantee
+  // createComponent gives freshly inserted nodes — so accepted data is
+  // immediately editable. External replacement that bypasses the store (the
+  // parent reassigning its own v-model ref) is on the caller's honor, like
+  // re-validation.
+  normalizeSlotProps(data.value, getConfig())
+
   // After an in-place mutation, reassign a fresh top-level object so the
   // v-model emits `update:data` — splicing nested arrays alone does not trigger
   // the emit. Nested arrays keep their identity (already mutated above), so this
@@ -67,7 +76,11 @@ export function createEditorStore(
   return {
     get config() { return getConfig() },
     get data() { return data.value },
-    set data(v: GissenData) { data.value = v },
+    set data(v: GissenData) {
+      // Same acceptance-time guarantee for documents replaced through the store.
+      normalizeSlotProps(v, getConfig())
+      data.value = v
+    },
     dndGroup,
     get selectedId() { return state.selectedId },
 

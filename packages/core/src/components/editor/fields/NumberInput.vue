@@ -39,6 +39,14 @@ function snapToStep(n: number, step: number, base: number): number {
   return Number.parseFloat(snapped.toPrecision(12))
 }
 
+// True when `n` satisfies the field's min/max. Step is deliberately not
+// checked: off-grid values are valid data (step is a UI affordance, snapped on
+// blur), and gating live commits on the grid would fight typing.
+function inRange(n: number): boolean {
+  const { min, max } = props.field
+  return (min === undefined || n >= min) && (max === undefined || n <= max)
+}
+
 // Apply the field's min/max/step constraints to a committed value. Clamp to the
 // range, snap to the step grid (anchored at min, or 0), then re-clamp in case a
 // snap nudged past a bound.
@@ -78,11 +86,13 @@ function onInput(e: Event): void {
     return
   }
   const parsed = parseDraft(next)
-  // Intermediate, non-parseable drafts leave the model untouched (no thrash).
-  // The value is written as-typed here; min/max/step are applied on commit
-  // (blur) so typing is never fought mid-keystroke. (locked decision: clamp on
-  // commit; invalid drafts follow the existing draft rules)
-  if (parsed !== undefined)
+  // Intermediate drafts leave the model untouched (no thrash): both
+  // non-parseable strings AND parsed-but-out-of-range values. The model never
+  // holds an out-of-range number — an emitted `update:data` snapshot must
+  // always pass `validateData`. No clamping here either (typing "5" toward
+  // "50" under min: 10 must not snap); blur normalizes. (locked decisions:
+  // live commit on keystroke, clamp on commit, draft rules)
+  if (parsed !== undefined && inRange(parsed))
     setValue(parsed)
 }
 

@@ -162,6 +162,34 @@ describe('createEmptyData', () => {
     const b = createEmptyData()
     expect(a).not.toBe(b)
   })
+
+  it('applies root.defaultProps when a config is given', () => {
+    const rootConfig: GissenConfig = {
+      components: {},
+      root: {
+        fields: { background: { type: 'text' } },
+        defaultProps: { background: '#fff' },
+      },
+    }
+    const data = createEmptyData(rootConfig)
+    expect(data.root.props).toEqual({ background: '#fff' })
+  })
+
+  it('clones root.defaultProps so documents never share objects with the config', () => {
+    const defaults = { palette: { primary: '#111' } }
+    const rootConfig: GissenConfig = {
+      components: {},
+      root: { defaultProps: defaults },
+    }
+    const data = createEmptyData(rootConfig)
+    expect(data.root.props.palette).toEqual(defaults.palette)
+    expect(data.root.props.palette).not.toBe(defaults.palette)
+  })
+
+  it('returns empty root props for a config without root defaults', () => {
+    const data = createEmptyData({ components: {} })
+    expect(data.root.props).toEqual({})
+  })
 })
 
 describe('createComponent', () => {

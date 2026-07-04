@@ -179,14 +179,12 @@ function validateComponent(component: RawComponent, config: GissenConfig, basePa
     const value = component.props[fieldName]
     const valuePath: Path = [...basePath, 'props', fieldName]
 
-    if (value === undefined) {
-      issues.push({
-        code: 'custom',
-        message: `Required prop "${fieldName}" is missing for component "${component.type}"`,
-        path: valuePath,
-      })
+    // Value-level tolerance: absent/undefined props are valid. JSON.stringify
+    // drops undefined values, so a round-tripped document lacks cleared keys —
+    // required-prop semantics would reject the editor's own output (e.g. a
+    // cleared number field). Type/range checks apply only to present values.
+    if (value === undefined)
       continue
-    }
 
     validateFieldValue(field, value, fieldName, valuePath, config, issues)
   }
@@ -197,8 +195,8 @@ function validateComponent(component: RawComponent, config: GissenConfig, basePa
 /**
  * Validates `data.root.props` against `config.root.fields` (M-4). Only runs when
  * the config declares root fields; a root with no configured fields is accepted
- * as-is. Root has no `id`, so unlike components no key is exempt from the
- * unknown-key check.
+ * as-is. Absent props are valid (same tolerance as component props). Root has
+ * no `id`, so unlike components no key is exempt from the unknown-key check.
  */
 function validateRootProps(
   rootProps: Record<string, unknown>,
@@ -223,14 +221,10 @@ function validateRootProps(
     const value = rootProps[fieldName]
     const valuePath: Path = [...propsPath, fieldName]
 
-    if (value === undefined) {
-      issues.push({
-        code: 'custom',
-        message: `Required root prop "${fieldName}" is missing`,
-        path: valuePath,
-      })
+    // Absent/undefined root props are valid — the same value-level tolerance
+    // as component props.
+    if (value === undefined)
       continue
-    }
 
     validateFieldValue(field, value, fieldName, valuePath, config, issues)
   }
@@ -244,8 +238,16 @@ function validateRootProps(
  * node (at any depth) has a non-empty string `id` and only known, well-typed
  * props.
  * When the config declares `root.fields`, `data.root.props` is validated against
- * them too. Throws `GissenValidationError` on failure; returns typed data on
- * success. Error issues include the path to the invalid node (e.g.
+ * them too.
+ *
+ * Policy: structurally strict, value-tolerant. Unknown component types,
+ * unknown prop keys, wrong value types, out-of-range numbers, and slot `allow`
+ * violations are rejected; absent or `undefined` props are accepted — a
+ * cleared field round-trips through JSON as a missing key, and every state
+ * reachable through editor operations must validate.
+ *
+ * Throws `GissenValidationError` on failure; returns typed data on success.
+ * Error issues include the path to the invalid node (e.g.
  * `content[0].props.features[1].props.title`).
  */
 export function validateData(data: unknown, config: GissenConfig): GissenData {

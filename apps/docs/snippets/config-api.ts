@@ -30,7 +30,7 @@ const definedConfig = defineGissenConfig({
           options: [
             { label: 'Sign up', value: 'signup' },
             { label: 'Buy now', value: 'buy' },
-          ] as const,
+          ],
         },
       },
       defaultProps: { title: 'Hello', count: 0, cta: 'signup' },
@@ -58,7 +58,7 @@ const variantField = {
   options: [
     { label: 'Primary', value: 'primary' },
     { label: 'Secondary', value: 'secondary' },
-  ] as const,
+  ],
 }
 const childrenField = { type: 'slot' as const, allow: ['Card', 'Text'] }
 
