@@ -74,14 +74,16 @@ function onItemKeydown(event: KeyboardEvent, type: string, index: number): void 
     <div class="gissen-sidebar__header">
       Components
     </div>
-    <ul ref="listEl" class="gissen-sidebar__list" aria-label="Component palette">
+    <ul ref="listEl" class="gissen-sidebar__list" role="listbox" aria-label="Component palette">
       <li
         v-for="(type, index) in componentTypes"
         :key="type"
         class="gissen-sidebar__item"
+        role="option"
         :data-gissen-type="type"
         :tabindex="index === focusedIndex ? 0 : -1"
         :aria-label="`Add ${type} component to canvas`"
+        :aria-selected="index === focusedIndex"
         aria-keyshortcuts="Enter"
         @focus="focusedIndex = index"
         @keydown="onItemKeydown($event, type, index)"
