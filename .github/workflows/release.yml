@@ -1,0 +1,81 @@
+name: Release
+
+# One-click release: pick the bump type, type the changelog line, run.
+# The job creates a changeset from those inputs, versions + generates the
+# changelog, commits the bump back to main, then builds and publishes to npm.
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Release type"
+        type: choice
+        required: true
+        options:
+          - patch
+          - minor
+          - major
+      summary:
+        description: "Changelog entry — what changed in this release"
+        type: string
+        required: true
+
+concurrency: ${{ github.workflow }}
+
+permissions:
+  contents: write # commit the version bump + push tags back to main
+  id-token: write # npm provenance (OIDC)
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create changeset from inputs
+        env:
+          BUMP: ${{ inputs.bump }}
+          SUMMARY: ${{ inputs.summary }}
+        run: |
+          cat > ".changeset/release-${{ github.run_id }}.md" <<EOF
+          ---
+          "gissen": ${BUMP}
+          ---
+
+          ${SUMMARY}
+          EOF
+
+      - name: Version (bump + changelog)
+        run: pnpm changeset version
+
+      - name: Commit version bump
+        run: |
+          git add -A
+          git commit -m "release: version gissen (${{ inputs.bump }})"
+
+      - name: Build + publish to npm
+        run: pnpm release
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
+
+      - name: Push commit + tags
+        run: git push --follow-tags
