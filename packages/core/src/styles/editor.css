@@ -78,6 +78,14 @@
   color: var(--gissen-accent);
 }
 
+.gissen-sidebar__item:focus-visible {
+  outline: var(--gissen-node-outline);
+  outline-offset: 2px;
+  background: var(--gissen-accent-light);
+  border-color: var(--gissen-accent);
+  color: var(--gissen-accent);
+}
+
 .gissen-sidebar__item:active {
   cursor: grabbing;
 }
