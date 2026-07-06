@@ -77,5 +77,16 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: 'true'
 
+      # In pre mode changesets publishes to the `alpha` dist-tag and won't touch
+      # `latest` (a stable 0.0.1 already exists, so its auto-latest rule is off).
+      # We want a bare `npm install gissen` to resolve the newest alpha, so point
+      # `latest` at the version we just published. Harmless once we exit pre mode.
+      - name: Point latest at the released version
+        run: |
+          VERSION=$(node -p "require('./packages/core/package.json').version")
+          npm dist-tag add gissen@"$VERSION" latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Push commit + tags
         run: git push --follow-tags
