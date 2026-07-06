@@ -20,10 +20,14 @@
     "test": "pnpm -r --if-present run test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "pnpm -r --if-present run typecheck"
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm --filter gissen build && changeset publish"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.12.0",
+    "@changesets/cli": "^2.27.10",
     "eslint": "^9.17.0",
     "typescript": "^5.7.2"
   }
