@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       bump:
-        description: "Release type"
+        description: Release type
         type: choice
         required: true
         options:
@@ -15,7 +15,7 @@ on:
           - minor
           - major
       summary:
-        description: "Changelog entry — what changed in this release"
+        description: Changelog entry — what changed in this release
         type: string
         required: true
 
@@ -75,7 +75,7 @@ jobs:
         run: pnpm release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: "true"
+          NPM_CONFIG_PROVENANCE: 'true'
 
       - name: Push commit + tags
         run: git push --follow-tags
