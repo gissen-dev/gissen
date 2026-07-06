@@ -1,7 +1,7 @@
 {
   "name": "gissen",
   "type": "module",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "Headless visual editor and renderer for Vue 3.",
   "license": "MIT",
   "homepage": "https://gissen.dev",
@@ -27,7 +27,9 @@
     "no-code",
     "open-source"
   ],
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
