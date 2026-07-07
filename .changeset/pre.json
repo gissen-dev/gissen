@@ -9,6 +9,7 @@
     "gissen-mcp": "0.0.0"
   },
   "changesets": [
-    "release-28801479559"
+    "release-28801479559",
+    "release-28887542934"
   ]
 }
