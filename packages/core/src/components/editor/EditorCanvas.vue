@@ -1,39 +1,98 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useEditorStore } from '../../composables/useEditorStore'
 import { useCanvasZoneDnD } from '../../composables/useGissenDnD'
 import { useSelection } from '../../composables/useSelection'
+import { viewportScale, viewportWidth } from '../../utils/viewport'
 import CanvasNode from './CanvasNode.vue'
 
 const store = useEditorStore()
 
-// `rootEl` is focusable (tabindex="-1"): clicking anywhere on the canvas focuses
-// it, scoping keyboard shortcuts to this editor instance.
+// `rootEl` is focusable (tabindex="0"): clicking anywhere on the canvas — or
+// tabbing to it — focuses it, scoping keyboard shortcuts (delete, undo/redo)
+// to this editor instance without requiring a mouse.
 const rootEl = ref<HTMLElement | null>(null)
 useSelection(rootEl)
 
 const innerEl = ref<HTMLElement | null>(null)
 useCanvasZoneDnD(innerEl, () => ({ parentId: null, slotName: null }))
+
+// Viewport preview measurements for scale-to-fit: the pane width decides
+// whether the preset even fits, the frame height sizes the scroll-extent
+// compensation. Only real browsers have ResizeObserver; without it (SSR,
+// jsdom) both stay null and the scale stays 1 — the width constraint alone
+// still applies.
+const frameEl = ref<HTMLElement | null>(null)
+const paneWidth = ref<number | null>(null)
+const frameHeight = ref<number | null>(null)
+
+let observer: ResizeObserver | null = null
+onMounted(() => {
+  if (typeof ResizeObserver === 'undefined' || rootEl.value === null || frameEl.value === null)
+    return
+  observer = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.target === rootEl.value)
+        paneWidth.value = entry.contentRect.width
+      else
+        frameHeight.value = entry.contentRect.height
+    }
+  })
+  observer.observe(rootEl.value)
+  observer.observe(frameEl.value)
+})
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  observer = null
+})
+
+const width = computed(() => viewportWidth(store.viewport))
+// An active drag forces scale 1 (Sortable hit-tests in untransformed
+// coordinates); the width constraint stays, so drops land in the real layout.
+const scale = computed(() => viewportScale(width.value, paneWidth.value, store.dragging))
+
+const frameStyle = computed(() => {
+  if (width.value === null)
+    return undefined
+  const style: Record<string, string> = { width: `${width.value}px` }
+  if (scale.value < 1) {
+    style.transform = `scale(${scale.value})`
+    style.transformOrigin = 'top center'
+    // transform does not affect layout: pull the flow up by the shrunk amount
+    // so the scroll extent matches what is actually visible.
+    if (frameHeight.value !== null)
+      style.marginBottom = `${Math.round((scale.value - 1) * frameHeight.value)}px`
+  }
+  return style
+})
 </script>
 
 <template>
-  <main ref="rootEl" class="gissen-canvas" tabindex="-1">
-    <div ref="innerEl" class="gissen-canvas__inner">
-      <div v-if="store.data.content.length === 0" class="gissen-canvas__empty">
-        <p class="gissen-canvas__empty-title">
-          Canvas is empty
-        </p>
-        <p class="gissen-canvas__empty-hint">
-          Drag components from the sidebar to get started
-        </p>
+  <main
+    ref="rootEl"
+    class="gissen-canvas"
+    :class="{ 'gissen-canvas--framed': width !== null }"
+    tabindex="0"
+    aria-label="Page canvas"
+  >
+    <div ref="frameEl" class="gissen-canvas__viewport" :style="frameStyle">
+      <div ref="innerEl" class="gissen-canvas__inner">
+        <div v-if="store.data.content.length === 0" class="gissen-canvas__empty">
+          <p class="gissen-canvas__empty-title">
+            Canvas is empty
+          </p>
+          <p class="gissen-canvas__empty-hint">
+            Drag components from the sidebar to get started
+          </p>
+        </div>
+        <template v-else>
+          <CanvasNode
+            v-for="component in store.data.content"
+            :key="component.props.id"
+            :component="component"
+          />
+        </template>
       </div>
-      <template v-else>
-        <CanvasNode
-          v-for="component in store.data.content"
-          :key="component.props.id"
-          :component="component"
-        />
-      </template>
     </div>
   </main>
 </template>

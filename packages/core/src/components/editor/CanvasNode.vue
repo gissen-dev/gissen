@@ -18,6 +18,7 @@ import type { ComponentData } from '../../types'
  */
 import { computed, defineAsyncComponent, defineComponent, h } from 'vue'
 import { useEditorStore } from '../../composables/useEditorStore'
+import CanvasNodeActions from './CanvasNodeActions.vue'
 
 // Lazy import to break the CanvasNode ↔ CanvasSlot circular dependency
 const CanvasSlot = defineAsyncComponent(() => import('./CanvasSlot.vue'))
@@ -81,7 +82,9 @@ export default defineComponent({
           'data-gissen-id': id,
           'onClick': handleClick,
         },
-        [inner],
+        // The floating node-action toolbar rides on the selected node only —
+        // editor chrome, absolutely positioned, unmounts with the selection.
+        isSelected ? [inner, h(CanvasNodeActions, { componentId: id })] : [inner],
       )
     }
   },

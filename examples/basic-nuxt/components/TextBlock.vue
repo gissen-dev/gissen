@@ -15,7 +15,7 @@ defineProps<{
 
 <style scoped>
 .text-block {
-  padding: 48px;
+  padding: clamp(24px, 6cqw, 48px);
   font-family: system-ui, sans-serif;
   max-width: 720px;
   margin: 0 auto;

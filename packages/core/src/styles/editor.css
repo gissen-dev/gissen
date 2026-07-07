@@ -13,9 +13,13 @@
   --gissen-text-muted: #64748b;
   --gissen-text-faint: #94a3b8;
   --gissen-node-outline: 2px solid var(--gissen-accent);
+  --gissen-danger: #dc2626;
+  --gissen-danger-light: #fee2e2;
   --gissen-radius: 4px;
   --gissen-sidebar-width: 260px;
   --gissen-panel-width: 300px;
+  /* One height for the top chrome row: toolbar + sidebar/panel headers. */
+  --gissen-chrome-height: 38px;
 }
 
 /* ── Layout ─────────────────────────────────────────────── */
@@ -44,7 +48,11 @@
 }
 
 .gissen-sidebar__header {
-  padding: 12px 14px 8px;
+  display: flex;
+  align-items: center;
+  height: var(--gissen-chrome-height);
+  box-sizing: border-box;
+  padding: 0 14px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -98,25 +106,152 @@
   flex-shrink: 0;
 }
 
+/* ── Main column (toolbar + canvas) ────────────────────── */
+
+.gissen-editor__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Toolbar ────────────────────────────────────────────── */
+
+.gissen-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--gissen-chrome-height);
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--gissen-border);
+  background: var(--gissen-surface);
+  flex-shrink: 0;
+}
+
+.gissen-toolbar__button,
+.gissen-toolbar__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--gissen-radius);
+  background: none;
+  color: var(--gissen-text-muted);
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+
+.gissen-toolbar__button:hover:not(:disabled),
+.gissen-toolbar__toggle:hover {
+  background: var(--gissen-accent-light);
+  color: var(--gissen-accent);
+}
+
+.gissen-toolbar__button:focus-visible,
+.gissen-toolbar__toggle:focus-visible {
+  outline: var(--gissen-node-outline);
+  outline-offset: 1px;
+}
+
+.gissen-toolbar__button:disabled {
+  color: var(--gissen-text-faint);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.gissen-toolbar__toggle[data-state="on"] {
+  background: var(--gissen-accent-light);
+  border-color: var(--gissen-accent);
+  color: var(--gissen-accent);
+}
+
+.gissen-toolbar__separator {
+  width: 1px;
+  height: 16px;
+  margin: 0 6px;
+  background: var(--gissen-border);
+  flex-shrink: 0;
+}
+
+.gissen-toolbar__viewports {
+  display: flex;
+  gap: 2px;
+}
+
+.gissen-toolbar__icon {
+  width: 16px;
+  height: 16px;
+}
+
 /* ── Canvas ─────────────────────────────────────────────── */
 
 .gissen-canvas {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   background: var(--gissen-bg);
   contain: layout style;
 }
 
-/* The canvas is focusable (tabindex="-1") to scope keyboard shortcuts; it is
-   focused programmatically via click, so suppress the focus ring. */
+/* The canvas is focusable (tabindex="0") to scope keyboard shortcuts. Click
+   focus stays ring-free; keyboard focus (Tab) gets a visible inset ring. */
 .gissen-canvas:focus {
   outline: none;
 }
 
+.gissen-canvas:focus-visible {
+  outline: var(--gissen-node-outline);
+  outline-offset: -2px;
+}
+
+/* Constrained viewport preview: the surface recedes so the document frame
+   reads as a device edge, centered in the pane. */
+.gissen-canvas--framed {
+  align-items: center;
+  padding: 16px;
+  background: var(--gissen-surface);
+  /* A frame wider than the pane is scale()d down to fit; the untransformed
+     layout box still overflows, so clip instead of growing a scrollbar. */
+  overflow-x: hidden;
+}
+
+.gissen-canvas__viewport {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+.gissen-canvas--framed .gissen-canvas__viewport {
+  /* Width comes inline from the active preset. */
+  background: var(--gissen-bg);
+  border: 1px solid var(--gissen-border);
+  border-radius: var(--gissen-radius);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.06);
+}
+
+/* The frame is a size container: user components written with container
+   queries / cq units respond to the PREVIEW width. Media queries can't —
+   they watch the browser window, which the preview does not resize. */
+.gissen-canvas__viewport {
+  container-type: inline-size;
+}
+
 .gissen-canvas__inner {
+  flex: 1 0 auto;
   padding: 24px;
-  min-height: 100%;
+}
+
+/* A device shows the page edge-to-edge: inside the preview frame the
+   editor's breathing-room padding would misrepresent the preset width. */
+.gissen-canvas--framed .gissen-canvas__inner {
+  padding: 0;
 }
 
 .gissen-canvas__empty {
@@ -154,6 +289,53 @@
 
 .gissen-node:hover {
   border-color: var(--gissen-border-strong);
+}
+
+/* Floating action toolbar on the selected node — editor chrome layered over
+   the content's top-right corner (inside the node box, so canvas scroll and
+   overflow never clip it). */
+.gissen-node-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--gissen-bg);
+  border: 1px solid var(--gissen-border);
+  border-radius: var(--gissen-radius);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
+}
+
+.gissen-node-actions__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: calc(var(--gissen-radius) - 1px);
+  background: none;
+  color: var(--gissen-text-muted);
+  cursor: pointer;
+  transition: background 120ms, color 120ms;
+}
+
+.gissen-node-actions__button:hover {
+  background: var(--gissen-danger-light);
+  color: var(--gissen-danger);
+}
+
+.gissen-node-actions__button:focus-visible {
+  outline: var(--gissen-node-outline);
+  outline-offset: 1px;
+}
+
+.gissen-node-actions__icon {
+  width: 14px;
+  height: 14px;
 }
 
 .gissen-node--selected {
@@ -204,7 +386,11 @@
 }
 
 .gissen-panel__header {
-  padding: 12px 14px 8px;
+  display: flex;
+  align-items: center;
+  height: var(--gissen-chrome-height);
+  box-sizing: border-box;
+  padding: 0 14px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;

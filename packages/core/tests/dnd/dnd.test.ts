@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, ref } from 'vue'
 import { createEditorStore, provideEditorStore } from '../../src/composables/useEditorStore'
 import { useCanvasZoneDnD, useSidebarDnD } from '../../src/composables/useGissenDnD'
-import { useSelection } from '../../src/composables/useSelection'
+import { matchHistoryShortcut, useSelection } from '../../src/composables/useSelection'
 
 // ── Mock vue-draggable-plus ────────────────────────────────────────────────
 
@@ -103,6 +103,20 @@ describe('useSidebarDnD', () => {
       useSidebarDnD(el)
     })
     expect(options.sort).toBe(false)
+  })
+
+  it('flags the store while a palette drag is in flight', () => {
+    const { store, options } = mountWithDnD(() => {
+      const el = ref<HTMLElement | null>(null)
+      useSidebarDnD(el)
+    })
+    const onStart = options.onStart as () => void
+    const onEnd = options.onEnd as () => void
+    expect(store.dragging).toBe(false)
+    onStart()
+    expect(store.dragging).toBe(true)
+    onEnd()
+    expect(store.dragging).toBe(false)
   })
 })
 
@@ -294,6 +308,28 @@ describe('useCanvasZoneDnD — onUpdate', () => {
     onUpdate({ item, oldIndex: 1, newIndex: 1 })
 
     expect(moveSpy).not.toHaveBeenCalled()
+  })
+
+  it('excludes the node-action toolbar from drag starts (filter)', () => {
+    const { options } = mountWithDnD(() => {
+      const el = ref<HTMLElement | null>(null)
+      useCanvasZoneDnD(el, () => ({ parentId: null, slotName: null }))
+    })
+    expect(options.filter).toContain('.gissen-node-actions')
+  })
+
+  it('flags the store while a canvas drag is in flight', () => {
+    const { store, options } = mountWithDnD(() => {
+      const el = ref<HTMLElement | null>(null)
+      useCanvasZoneDnD(el, () => ({ parentId: null, slotName: null }))
+    })
+    const onStart = options.onStart as () => void
+    const onEnd = options.onEnd as () => void
+    expect(store.dragging).toBe(false)
+    onStart()
+    expect(store.dragging).toBe(true)
+    onEnd()
+    expect(store.dragging).toBe(false)
   })
 })
 
@@ -522,5 +558,109 @@ describe('useSelection', () => {
       root.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true })),
     ).not.toThrow()
     expect(store.selectedId).toBeNull()
+  })
+
+  // ── History shortcuts ──────────────────────────────────────────────────
+  // jsdom reports no Apple platform, so the primary modifier here is Ctrl.
+
+  function keydown(mods: Partial<KeyboardEventInit> & { key: string }): KeyboardEvent {
+    return new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...mods })
+  }
+
+  it('undoes on mod+Z from the editor root', () => {
+    const store = createEditorStore(testConfig, makeData())
+    store.insertComponent('Button', null, null, 0)
+    const { root } = mountSelection(store)
+
+    const notPrevented = root.dispatchEvent(keydown({ key: 'z', ctrlKey: true }))
+    expect(store.data.content).toHaveLength(0)
+    expect(notPrevented).toBe(false) // handled: default prevented
+  })
+
+  it('redoes on mod+Shift+Z and on mod+Y', () => {
+    const store = createEditorStore(testConfig, makeData())
+    store.insertComponent('Button', null, null, 0)
+    store.undo()
+    const { root } = mountSelection(store)
+
+    root.dispatchEvent(keydown({ key: 'Z', ctrlKey: true, shiftKey: true }))
+    expect(store.data.content).toHaveLength(1)
+
+    store.undo()
+    root.dispatchEvent(keydown({ key: 'y', ctrlKey: true }))
+    expect(store.data.content).toHaveLength(1)
+  })
+
+  it('leaves mod+Z to the browser when focus is in an editable field', () => {
+    const store = createEditorStore(testConfig, makeData())
+    store.insertComponent('Button', null, null, 0)
+    const { input, editable } = mountSelection(store)
+
+    const inputNotPrevented = input.dispatchEvent(keydown({ key: 'z', ctrlKey: true }))
+    expect(store.data.content).toHaveLength(1) // document history untouched
+    expect(inputNotPrevented).toBe(true) // native text undo keeps working
+
+    const editableNotPrevented = editable.dispatchEvent(keydown({ key: 'z', ctrlKey: true }))
+    expect(store.data.content).toHaveLength(1)
+    expect(editableNotPrevented).toBe(true)
+  })
+
+  it('removes its listener on unmount (no ghost handling)', () => {
+    const store = createEditorStore(testConfig, makeData())
+    store.insertComponent('Button', null, null, 0)
+    const { wrapper, root } = mountSelection(store)
+    wrapper.unmount()
+
+    // A detached element still invokes listeners it holds — none must remain.
+    root.dispatchEvent(keydown({ key: 'z', ctrlKey: true }))
+    expect(store.data.content).toHaveLength(1)
+  })
+
+  it('acts only on the editor that contains the event (two editors)', () => {
+    const storeA = createEditorStore(testConfig, makeData())
+    storeA.insertComponent('Button', null, null, 0)
+    const storeB = createEditorStore(testConfig, makeData())
+    storeB.insertComponent('Button', null, null, 0)
+    const a = mountSelection(storeA)
+    const b = mountSelection(storeB)
+
+    a.root.dispatchEvent(keydown({ key: 'z', ctrlKey: true }))
+    expect(storeA.data.content).toHaveLength(0)
+    expect(storeB.data.content).toHaveLength(1)
+
+    b.root.dispatchEvent(keydown({ key: 'z', ctrlKey: true }))
+    expect(storeB.data.content).toHaveLength(0)
+  })
+})
+
+// ── matchHistoryShortcut ───────────────────────────────────────────────────
+
+describe('matchHistoryShortcut', () => {
+  function e(init: Partial<KeyboardEventInit> & { key: string }): KeyboardEvent {
+    return new KeyboardEvent('keydown', init)
+  }
+
+  it('maps Ctrl combos on non-Apple platforms', () => {
+    expect(matchHistoryShortcut(e({ key: 'z', ctrlKey: true }), false)).toBe('undo')
+    expect(matchHistoryShortcut(e({ key: 'Z', ctrlKey: true, shiftKey: true }), false)).toBe('redo')
+    expect(matchHistoryShortcut(e({ key: 'y', ctrlKey: true }), false)).toBe('redo')
+  })
+
+  it('maps ⌘ combos on Apple platforms', () => {
+    expect(matchHistoryShortcut(e({ key: 'z', metaKey: true }), true)).toBe('undo')
+    expect(matchHistoryShortcut(e({ key: 'z', metaKey: true, shiftKey: true }), true)).toBe('redo')
+    expect(matchHistoryShortcut(e({ key: 'y', metaKey: true }), true)).toBe('redo')
+  })
+
+  it('rejects the wrong modifier for the platform', () => {
+    expect(matchHistoryShortcut(e({ key: 'z', ctrlKey: true }), true)).toBeNull()
+    expect(matchHistoryShortcut(e({ key: 'z', metaKey: true }), false)).toBeNull()
+  })
+
+  it('rejects Alt, unmodified keys, and unrelated combos', () => {
+    expect(matchHistoryShortcut(e({ key: 'z', ctrlKey: true, altKey: true }), false)).toBeNull()
+    expect(matchHistoryShortcut(e({ key: 'z' }), false)).toBeNull()
+    expect(matchHistoryShortcut(e({ key: 'y', ctrlKey: true, shiftKey: true }), false)).toBeNull()
+    expect(matchHistoryShortcut(e({ key: 's', ctrlKey: true }), false)).toBeNull()
   })
 })

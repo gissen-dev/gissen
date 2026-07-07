@@ -45,6 +45,11 @@ runtime is on the caller's honor — the editor does not re-validate it. If you
 swap documents in, run `validateData` (see [Config API](./config-api#runtime-validation))
 on the new value first; malformed data fails at render time, not at the swap.
 
+Two things do happen automatically on a swap: the incoming document gets the
+same acceptance-time slot normalization as the initial one, and the undo
+history is reset — the replaced document becomes the new baseline, so you
+cannot undo across an external document swap.
+
 ## Sizing
 
 The editor fills its container element via `height: 100%`. Make sure the container has an explicit height:
@@ -68,6 +73,60 @@ The canvas area scrolls independently. The sidebar and panel have their own scro
 |---|---|
 | `Escape` | Deselect the currently selected component |
 | `Delete` / `Backspace` | Remove the selected component from the canvas |
+| `Ctrl+Z` / `⌘Z` | Undo the last document change |
+| `Ctrl+Shift+Z` / `⇧⌘Z`, `Ctrl+Y` / `⌘Y` | Redo the last undone change |
+
+Shortcuts fire while focus is inside the editor canvas, so two editors on one
+page never interfere. While you are typing in a field, `Ctrl+Z` stays the
+browser's native text undo — document history is not touched.
+
+Deleting doesn't require the keyboard: the selected node shows a small action
+toolbar with a delete button. There is no confirmation dialog — undo is the
+safety net.
+
+## Undo & redo
+
+Every document change — inserting, moving, or deleting a component, and every
+property edit — is undoable, via the toolbar buttons above the canvas or the
+shortcuts. History holds up to 100 steps and is in-memory only: it is not
+persisted, and it starts fresh on every mount.
+
+A few behaviors worth knowing:
+
+- **Typing coalesces.** Consecutive edits to the same field collapse into one
+  step, so undoing after typing a word restores the value before you started
+  typing — not one character at a time. Switching to another field or
+  component, making a structural change, or pausing for a moment starts a new
+  step.
+- **Redo clears on new edits.** After an undo, any new change discards the
+  redo branch (history is linear).
+- **Selection is reconciled.** If the node you had selected no longer exists
+  after an undo/redo, the selection is cleared; otherwise it is kept.
+- **External swaps reset history.** Replacing the bound `data` document resets
+  the history to the new document (see above).
+
+Each undo/redo emits `update:data` exactly like a normal edit, so hosts that
+persist on that event also see history navigation.
+
+## Viewport preview
+
+The toolbar's viewport switcher previews the canvas at three widths: desktop
+(full pane), tablet (768px), and mobile (375px). When the pane is narrower
+than the chosen preset, the frame scales down to fit.
+
+The preview is **editor-only state**: it is never written into `GissenData`,
+does not survive in the emitted document, and undo/redo never change it.
+Gissen deliberately has no per-breakpoint property overrides — responsive
+behavior belongs to your components, not to the document. The preview simply
+lets you watch them respond while editing.
+
+One thing to know about how your components respond inside the preview: the
+frame constrains width without resizing the browser window, so **CSS media
+queries do not react to it**. The frame is declared as a size container
+(`container-type: inline-size`), so **container queries and `cq*` units do**
+— and intrinsic layout (flex wrap, grid `auto-fill`, `min()`/percentages)
+responds naturally. Components written with `cqw` degrade gracefully outside
+any container: the units then resolve against the real viewport.
 
 ## Wrapper elements in editor mode
 

@@ -1,11 +1,17 @@
 import type { Component } from 'vue'
 import type { GissenConfig, GissenData } from '../../src/types'
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { describe, expect, it, vi } from 'vitest'
+import { defineComponent, h, nextTick } from 'vue'
 import CanvasNode from '../../src/components/editor/CanvasNode.vue'
 import CanvasSlot from '../../src/components/editor/CanvasSlot.vue'
+import EditorCanvas from '../../src/components/editor/EditorCanvas.vue'
 import { createEditorStore, provideEditorStore } from '../../src/composables/useEditorStore'
+
+// EditorCanvas and CanvasSlot wire up vue-draggable-plus drop zones.
+vi.mock('vue-draggable-plus', () => ({
+  useDraggable: vi.fn(() => ({ start: vi.fn(), pause: vi.fn(), resume: vi.fn() })),
+}))
 
 // ── Test components ────────────────────────────────────────────────────────
 
@@ -169,5 +175,102 @@ describe('canvasSlot', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.gissen-slot--empty').exists()).toBe(false)
     expect(wrapper.find('[data-gissen-id="child-1"]').exists()).toBe(true)
+  })
+})
+
+// ── Node action toolbar ────────────────────────────────────────────────────
+
+describe('canvasNodeActions', () => {
+  function mountSelectable(id: string) {
+    const data = emptyData()
+    const node = { type: 'Button', props: { id, label: 'Node' } }
+    data.content.push(node as never)
+    return mountWithStore(CanvasNode, { component: node }, testConfig, data)
+  }
+
+  it('appears only on the selected node', async () => {
+    const { wrapper, store } = mountSelectable('act-1')
+    expect(wrapper.find('.gissen-node-actions').exists()).toBe(false)
+
+    store.selectComponent('act-1')
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.gissen-node-actions').exists()).toBe(true)
+
+    store.selectComponent(null)
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.gissen-node-actions').exists()).toBe(false)
+  })
+
+  it('does not appear when a different node is selected', async () => {
+    const { wrapper, store } = mountSelectable('act-2')
+    store.selectComponent('someone-else')
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.gissen-node-actions').exists()).toBe(false)
+  })
+
+  it('delete button removes the node through the store (undoable, labeled)', async () => {
+    const { wrapper, store } = mountSelectable('act-3')
+    store.selectComponent('act-3')
+    await wrapper.vm.$nextTick()
+
+    const button = wrapper.get('[aria-label="Delete component"]')
+    expect(button.attributes('title')).toContain('Del')
+
+    await button.trigger('click')
+    expect(store.data.content).toHaveLength(0)
+    // The click must not bubble into the node wrapper and re-select the
+    // node being deleted; removal clears the selection.
+    expect(store.selectedId).toBeNull()
+
+    // Same store path as the keyboard shortcut: it landed in history.
+    expect(store.canUndo).toBe(true)
+    store.undo()
+    expect(store.data.content[0]?.props.id).toBe('act-3')
+  })
+})
+
+// ── EditorCanvas viewport preview ──────────────────────────────────────────
+
+describe('editorCanvas viewport preview', () => {
+  function mountCanvas() {
+    const { wrapper, store } = mountWithStore(EditorCanvas, {})
+    return {
+      wrapper,
+      store,
+      main: wrapper.get('.gissen-canvas'),
+      frame: wrapper.get('.gissen-canvas__viewport'),
+    }
+  }
+
+  it('renders unconstrained on the default desktop preset', () => {
+    const { main, frame } = mountCanvas()
+    expect(main.classes()).not.toContain('gissen-canvas--framed')
+    expect(frame.attributes('style')).toBeUndefined()
+  })
+
+  it('constrains the frame to the preset width', async () => {
+    const { store, main, frame } = mountCanvas()
+
+    store.setViewport('tablet')
+    await nextTick()
+    expect(main.classes()).toContain('gissen-canvas--framed')
+    expect(frame.attributes('style')).toContain('width: 768px')
+
+    store.setViewport('mobile')
+    await nextTick()
+    expect(frame.attributes('style')).toContain('width: 375px')
+    // Without a measured pane (no ResizeObserver here) the scale stays 1:
+    // the width constraint alone applies, no transform.
+    expect(frame.attributes('style')).not.toContain('transform')
+  })
+
+  it('restores the full width when switching back to desktop', async () => {
+    const { store, main, frame } = mountCanvas()
+    store.setViewport('mobile')
+    await nextTick()
+    store.setViewport('desktop')
+    await nextTick()
+    expect(main.classes()).not.toContain('gissen-canvas--framed')
+    expect(frame.attributes('style')).toBeFalsy()
   })
 })

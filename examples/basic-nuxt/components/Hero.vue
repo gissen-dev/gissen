@@ -21,19 +21,21 @@ defineProps<{
 .hero {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: #fff;
-  padding: 80px 48px;
+  /* cq units track the nearest size container — the editor's viewport
+     preview frame — and fall back to viewport units in production. */
+  padding: clamp(40px, 12cqw, 80px) clamp(20px, 6cqw, 48px);
   text-align: center;
   font-family: system-ui, sans-serif;
 }
 .hero__title {
-  font-size: 3rem;
+  font-size: clamp(1.9rem, 8cqw, 3rem);
   font-weight: 800;
   margin: 0 0 16px;
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
 .hero__subtitle {
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 3.5cqw, 1.2rem);
   margin: 0 0 36px;
   opacity: 0.88;
   max-width: 520px;

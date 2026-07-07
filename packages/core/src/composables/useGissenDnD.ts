@@ -35,6 +35,15 @@ export function useSidebarDnD(el: Ref<HTMLElement | null>): void {
     animation: 0,
     ghostClass: 'gissen-drag-ghost',
     chosenClass: 'gissen-drag-chosen',
+    // Sortable fires onStart/onEnd on the source list only, so each drag
+    // toggles the flag exactly once. The canvas resets its viewport
+    // scale-to-fit while the flag is up (Sortable hit-tests unscaled).
+    onStart() {
+      store.setDragging(true)
+    },
+    onEnd() {
+      store.setDragging(false)
+    },
   })
 }
 
@@ -80,12 +89,22 @@ export function useCanvasZoneDnD(
     },
     draggable: '.gissen-node',
     emptyInsertThreshold: 60,
-    filter: '.gissen-canvas__empty,.gissen-slot--empty',
+    // Node-action buttons are chrome INSIDE the draggable node: without the
+    // filter, pressing one and twitching the pointer would start a node drag.
+    filter: '.gissen-canvas__empty,.gissen-slot--empty,.gissen-node-actions',
     preventOnFilter: true,
     animation: 150,
     ghostClass: 'gissen-drag-ghost',
     chosenClass: 'gissen-drag-chosen',
     dragClass: 'gissen-drag-fallback',
+
+    // See useSidebarDnD: drags reset the canvas viewport scale while in flight.
+    onStart() {
+      store.setDragging(true)
+    },
+    onEnd() {
+      store.setDragging(false)
+    },
 
     onAdd(evt) {
       const item = evt.item as HTMLElement

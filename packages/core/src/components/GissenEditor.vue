@@ -6,6 +6,7 @@ import { validateConfig, validateData } from '../validation'
 import EditorCanvas from './editor/EditorCanvas.vue'
 import EditorPanel from './editor/EditorPanel.vue'
 import EditorSidebar from './editor/EditorSidebar.vue'
+import EditorToolbar from './editor/EditorToolbar.vue'
 
 const props = defineProps<{ config: GissenConfig }>()
 const modelData = defineModel<GissenData>('data', { required: true })
@@ -28,9 +29,8 @@ watch(() => props.config, config => validateConfig(config))
 
 // The store mutates the v-model ref in place, then reassigns a fresh top-level
 // object so `update:data` is emitted on every change. External replacement of
-// `data` is read back through the same ref for free.
-// TODO: deep-immutable updates (new objects for every touched node) for undo/
-// redo and snapshot propagation are still future work — tracked as variant A.
+// `data` is read back through the same ref for free — the store detects the
+// swap, normalizes the incoming document, and resets undo history to it.
 const store = createEditorStore(() => props.config, modelData)
 provideEditorStore(store)
 </script>
@@ -38,7 +38,10 @@ provideEditorStore(store)
 <template>
   <div class="gissen-editor">
     <EditorSidebar :config="config" />
-    <EditorCanvas />
+    <div class="gissen-editor__main">
+      <EditorToolbar />
+      <EditorCanvas />
+    </div>
     <EditorPanel />
   </div>
 </template>
