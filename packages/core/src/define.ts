@@ -1,11 +1,13 @@
 import type { Component } from 'vue'
-import type { FieldConfig, InferComponentProps, RootConfig } from './types'
+import type { FieldConfig, InferComponentProps, InferRenderProps, RootConfig } from './types'
 
 /** Internal shape used to validate each component before inferring types. */
 interface ComponentInput<F extends Record<string, FieldConfig>> {
   fields: F
   defaultProps?: Partial<InferComponentProps<F>>
-  render: Component<InferComponentProps<F> & { id: string }>
+  // Slot fields are delivered as named slots, not props — the render
+  // component is checked against the non-slot props only.
+  render: Component<InferRenderProps<F>>
 }
 
 /** Internal mapped type that associates each component name with its typed config. */

@@ -94,12 +94,33 @@ parts of M-2/M-3, plus L-9 and L-10). Kept here so they aren't lost.
   `Component<genericProps>` (variance). The `:config="config"` → `<GissenEditor>`
   binding works (Vue template checking is lenient), so real apps rarely hit it,
   but the docs' Utilities snippet is technically affected. Surfaced by the new
-  docs typecheck (Phase 2). _Status: open; fix requires changing the public
-  `defineGissenConfig` / `createComponent` / `validateData` type signatures —
-  out of scope for the version-contract fix._
+  docs typecheck (Phase 2). _Status: **fixed in Phase 6** — `ComponentConfig.render`
+  is deliberately loose (`Component`) at the registry level, and the precise
+  per-component check moved to `defineGissenConfig` (`InferRenderProps`).
+  Assignability verified empirically; see `docs/devlog/phase-6.md`._
 - **Number-input caret / IME behavior is unverified in CI.** The Phase 4 tests
   assert model/draft-string state in jsdom; caret position and IME composition
   are not exercised (no browser-level test harness). _Status: open._
+
+## Surfaced during Phase 6 (production renderer + SSR)
+
+- **A `root.render` component that doesn't render its default slot crashes the
+  editor.** The canvas DnD zone lives inside GissenRoot's default slot; if the
+  root component never renders the slot (observed with a `template`-string
+  component under Nuxt's runtime-only Vue build), `innerEl` stays `null`,
+  `useDraggable` hands it to Sortable, and app init dies with the cryptic
+  ``Sortable: `el` must be an HTMLElement, not [object Null]``. EditorCanvas
+  should check `innerEl` after mount, log a clear dev error ("does your
+  root.render component render its default slot?"), and skip DnD init instead
+  of crashing. _Status: open (deferred — changes editor behavior; found by
+  manual QA on an invalid setup)._
+- **`dist/index.d.ts` still imports `./components/GissenEditor.vue`.** The dts
+  bundling never resolved the SFC's types, so the published `index.d.ts` starts
+  with an unresolvable `.vue` import and consumers see `GissenEditor` as `any`
+  — its props (`config`, `v-model:data`) are not type-checked in consumer code.
+  Pre-existing (verified present on `main`); masked every config-typing bug
+  until Phase 6's plain-`.ts` `GissenRender` shipped real types. Fix likely
+  requires vue-tsc-based dts generation for SFC exports. _Status: open._
 
 ## Fixed by the validation-tolerance follow-up (2026-07-04)
 

@@ -4,7 +4,9 @@ defineProps<{
   icon: string
   title: string
   description: string
-  badge: number
+  // Number fields are clearable in the editor (cleared → the prop is absent),
+  // so a component must declare them optional — absence is a valid state.
+  badge?: number
   highlighted: boolean
 }>()
 </script>

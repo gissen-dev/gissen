@@ -9,6 +9,7 @@ export default defineConfig({
       { text: 'Getting Started', link: '/getting-started' },
       { text: 'Config API', link: '/config-api' },
       { text: 'Editor', link: '/editor' },
+      { text: 'Rendering', link: '/rendering' },
     ],
 
     sidebar: [
@@ -23,6 +24,7 @@ export default defineConfig({
         items: [
           { text: 'Config API', link: '/config-api' },
           { text: 'Editor', link: '/editor' },
+          { text: 'Rendering', link: '/rendering' },
         ],
       },
     ],

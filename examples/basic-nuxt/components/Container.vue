@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { ComponentData } from 'gissen'
-
+// The `children` slot field arrives as the named slot below, not as a prop —
+// Gissen strips slot fields from props in both the editor and GissenRender.
 defineProps<{
   id: string
-  children: ComponentData[]
 }>()
 </script>
 
