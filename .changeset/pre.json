@@ -10,6 +10,7 @@
   },
   "changesets": [
     "release-28801479559",
-    "release-28887542934"
+    "release-28887542934",
+    "release-30467200754"
   ]
 }

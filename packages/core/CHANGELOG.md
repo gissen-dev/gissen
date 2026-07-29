@@ -1,5 +1,11 @@
 # gissen
 
+## 0.1.0-alpha.5
+
+### Minor Changes
+
+- Add the production render path: <GissenRender> renders editor-produced JSON with zero wrapper elements and verified SSR/hydration in Nuxt, including root rendering (config.root.render) in both the editor canvas and the renderer. Ship a tree-shakeable gissen/render subpath (renderer + types + defineGissenConfig, no editor stack) and fix the config type surface: defineGissenConfig results are now assignable to GissenConfig, and render components are checked against the props they actually receive.
+
 ## 0.1.0-alpha.4
 
 ### Minor Changes
