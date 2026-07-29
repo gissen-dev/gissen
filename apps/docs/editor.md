@@ -130,7 +130,7 @@ any container: the units then resolve against the real viewport.
 
 ## Wrapper elements in editor mode
 
-In editor mode each component instance on the canvas is wrapped in a `<div class="gissen-node">`. This wrapper provides the selection outline, the drag target, and `data-gissen-id` for internal bookkeeping. It is **only present in editor mode** — the production renderer (`<GissenRender>`, coming soon) renders components with zero wrappers.
+In editor mode each component instance on the canvas is wrapped in a `<div class="gissen-node">`. This wrapper provides the selection outline, the drag target, and `data-gissen-id` for internal bookkeeping. It is **only present in editor mode** — the production renderer ([`<GissenRender>`](./rendering)) renders components with zero wrappers.
 
 ## Theming
 

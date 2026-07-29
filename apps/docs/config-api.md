@@ -39,7 +39,7 @@ const config = defineGissenConfig({
 })
 ```
 
-TypeScript infers prop types from `fields`. `Hero`'s `cta` prop is narrowed to `'signup' | 'buy'`; `PricingCard`'s `features` prop is typed as `ComponentData[]`. Setting `defaultProps` to a value incompatible with the inferred type is a compile-time error.
+TypeScript infers prop types from `fields`. `Hero`'s `cta` prop is narrowed to `'signup' | 'buy'`; `PricingCard`'s `features` entry in `defaultProps` is typed as `ComponentData[]`. Setting `defaultProps` to a value incompatible with the inferred type is a compile-time error, and each `render` component is checked against the props it will actually receive — the non-slot fields plus `id` (slot children arrive as [named slots](#slot-convention), not props).
 
 ## Field types
 
@@ -115,9 +115,43 @@ A component that declares a `slot` field **must** expose a named slot in its tem
 </template>
 ```
 
-During editing, `<GissenEditor>` injects a drop zone into each named slot so child components can be placed there visually. During production rendering (via `<GissenRender>`, coming soon) the slot receives the rendered children.
+During editing, `<GissenEditor>` injects a drop zone into each named slot so child components can be placed there visually. During production rendering ([`<GissenRender>`](./rendering)) the slot receives the rendered children.
 
 If the slot field is named `children`, the component must have `<slot name="children" />`. The slot name and the field name must match exactly.
+
+Slot fields are **not props**: both the editor canvas and `<GissenRender>`
+strip them from the props they pass and deliver the children through the
+named slot instead. Your component should not declare the slot field in
+`defineProps` — the props it receives are the non-slot fields plus `id`
+(the exported `InferRenderProps` type).
+
+## Root
+
+The optional `root` entry configures the page's root container:
+
+```ts
+import { defineGissenConfig } from 'gissen'
+import PageShell from './components/PageShell.vue'
+
+const config = defineGissenConfig({
+  components: { /* ... */ },
+  root: {
+    fields: { theme: { type: 'text' } },
+    defaultProps: { theme: 'light' },
+    render: PageShell,
+  },
+})
+```
+
+| Key | Description |
+|---|---|
+| `fields` | Field configs for the root's own props. When set, `validateData` checks `data.root.props` against them. |
+| `defaultProps` | Applied to `root.props` by `createEmptyData(config)`. |
+| `render` | A component wrapping the page content — in the editor canvas and in `<GissenRender>` alike. It receives `data.root.props` as props and the content through its default slot. See [Root rendering](./rendering#root-rendering). |
+
+Without `root.render`, content renders bare — no wrapper element. The root is
+not selectable on the canvas and its props have no panel UI yet; set them via
+`defaultProps` or in the document.
 
 ## Runtime validation
 

@@ -6,6 +6,7 @@ export type {
   GissenConfig,
   InferComponentProps,
   InferFieldType,
+  InferRenderProps,
   NumberField,
   RootConfig,
   SelectField,

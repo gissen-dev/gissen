@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useEditorStore } from '../../composables/useEditorStore'
 import { useCanvasZoneDnD } from '../../composables/useGissenDnD'
 import { useSelection } from '../../composables/useSelection'
+import GissenRoot from '../../render/GissenRoot'
 import { viewportScale, viewportWidth } from '../../utils/viewport'
 import CanvasNode from './CanvasNode.vue'
 
@@ -76,23 +77,31 @@ const frameStyle = computed(() => {
     aria-label="Page canvas"
   >
     <div ref="frameEl" class="gissen-canvas__viewport" :style="frameStyle">
-      <div ref="innerEl" class="gissen-canvas__inner">
-        <div v-if="store.data.content.length === 0" class="gissen-canvas__empty">
-          <p class="gissen-canvas__empty-title">
-            Canvas is empty
-          </p>
-          <p class="gissen-canvas__empty-hint">
-            Drag components from the sidebar to get started
-          </p>
+      <!--
+        The root wrapper sits between the viewport frame and the DnD zone:
+        `.gissen-canvas__inner` must stay the direct parent of the CanvasNodes
+        (Sortable hit-tests the zone's direct children), and the frame stays
+        the size container for the viewport preview.
+      -->
+      <GissenRoot :render="store.config.root?.render" :root-props="store.data.root.props">
+        <div ref="innerEl" class="gissen-canvas__inner">
+          <div v-if="store.data.content.length === 0" class="gissen-canvas__empty">
+            <p class="gissen-canvas__empty-title">
+              Canvas is empty
+            </p>
+            <p class="gissen-canvas__empty-hint">
+              Drag components from the sidebar to get started
+            </p>
+          </div>
+          <template v-else>
+            <CanvasNode
+              v-for="component in store.data.content"
+              :key="component.props.id"
+              :component="component"
+            />
+          </template>
         </div>
-        <template v-else>
-          <CanvasNode
-            v-for="component in store.data.content"
-            :key="component.props.id"
-            :component="component"
-          />
-        </template>
-      </div>
+      </GissenRoot>
     </div>
   </main>
 </template>

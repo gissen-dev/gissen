@@ -62,4 +62,10 @@ export default defineGissenConfig({
       render: Container,
     },
   },
+  root: {
+    render: defineComponent({
+      setup: (_, { slots }) =>
+        () => h('main', { style: 'background:#f5f3f0; padding:2rem;' }, slots.default?.()),
+    }),
+  },
 })

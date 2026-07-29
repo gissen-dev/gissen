@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import type { ComponentData } from 'gissen'
-
 // Mirrors the `PricingCard` field config in config-api.md, including the slot
-// convention (a `features` slot field requires a matching named slot).
+// convention: the `features` slot field maps to a named slot, NOT a prop —
+// the props a component receives are its non-slot fields plus `id`.
 defineProps<{
   id: string
   name: string
   featured: boolean
-  features: ComponentData[]
 }>()
 </script>
 

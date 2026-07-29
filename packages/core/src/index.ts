@@ -1,5 +1,6 @@
 export { default as GissenEditor } from './components/GissenEditor.vue'
 export { defineGissenConfig } from './define'
+export { default as GissenRender } from './render/GissenRender'
 export type {
   BooleanField,
   ComponentConfig,
@@ -10,6 +11,7 @@ export type {
   GissenData,
   InferComponentProps,
   InferFieldType,
+  InferRenderProps,
   NumberField,
   RootConfig,
   RootData,

@@ -29,10 +29,19 @@ export default defineConfig({
     // ("Identifier 'h' has already been declared").
     minify: false,
     lib: {
-      entry: fileURLToPath(new URL('src/index.ts', import.meta.url)),
+      // Two entries: the full barrel, and the render-only subpath. Splitting
+      // at build time is what makes `gissen/render` editor-free — module-scope
+      // initialization in the editor stack (Sortable's browser sniffing, zod
+      // schema construction) survives consumer tree-shaking of the single
+      // barrel bundle, so a render-only app needs an entry that never
+      // includes those modules.
+      entry: {
+        index: fileURLToPath(new URL('src/index.ts', import.meta.url)),
+        render: fileURLToPath(new URL('src/render/index.ts', import.meta.url)),
+      },
       name: 'GissenCore',
       formats: ['es', 'cjs'],
-      fileName: format => `index.${format === 'es' ? 'mjs' : 'cjs'}`,
+      fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'mjs' : 'cjs'}`,
     },
     rollupOptions: {
       external: ['vue'],

@@ -36,6 +36,11 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
+    "./render": {
+      "types": "./dist/render.d.ts",
+      "import": "./dist/render.mjs",
+      "require": "./dist/render.cjs"
+    },
     "./style.css": "./dist/gissen.css"
   },
   "main": "./dist/index.cjs",

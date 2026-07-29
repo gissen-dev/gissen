@@ -229,6 +229,48 @@ describe('canvasNodeActions', () => {
   })
 })
 
+// ── EditorCanvas root rendering ────────────────────────────────────────────
+
+describe('editorCanvas root rendering', () => {
+  const PageShell = defineComponent({
+    props: { theme: String },
+    template: '<main data-testid="shell" :data-theme="theme"><slot /></main>',
+  })
+
+  function rootConfig(): GissenConfig {
+    return {
+      components: testConfig.components,
+      root: { fields: { theme: { type: 'text' } }, render: PageShell },
+    }
+  }
+
+  it('wraps the DnD zone in config.root.render with data.root.props', () => {
+    const data = emptyData()
+    data.root.props = { theme: 'dark' }
+    data.content.push({ type: 'Button', props: { id: 'btn-root', label: 'In root' } })
+    const { wrapper } = mountWithStore(EditorCanvas, {}, rootConfig(), data)
+
+    const shell = wrapper.get('[data-testid="shell"]')
+    expect(shell.attributes('data-theme')).toBe('dark')
+    // The wrapper sits between the viewport frame and the DnD zone: Sortable
+    // hit-tests the zone's direct children, which must stay the CanvasNodes.
+    expect(shell.element.parentElement?.classList.contains('gissen-canvas__viewport')).toBe(true)
+    expect(shell.element.firstElementChild?.classList.contains('gissen-canvas__inner')).toBe(true)
+    expect(shell.find('[data-gissen-id="btn-root"]').exists()).toBe(true)
+  })
+
+  it('shows the empty state inside the root wrapper', () => {
+    const { wrapper } = mountWithStore(EditorCanvas, {}, rootConfig())
+    expect(wrapper.get('[data-testid="shell"]').find('.gissen-canvas__empty').exists()).toBe(true)
+  })
+
+  it('keeps the DnD zone as the frame\'s direct child when no root render is configured', () => {
+    const { wrapper } = mountWithStore(EditorCanvas, {})
+    const frame = wrapper.get('.gissen-canvas__viewport')
+    expect(frame.element.firstElementChild?.classList.contains('gissen-canvas__inner')).toBe(true)
+  })
+})
+
 // ── EditorCanvas viewport preview ──────────────────────────────────────────
 
 describe('editorCanvas viewport preview', () => {

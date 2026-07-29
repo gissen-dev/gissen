@@ -14,10 +14,11 @@ import type { ComponentData } from '../../types'
  *
  * NOTE: This component introduces one wrapper <div class="gissen-node"> per
  * component instance in editor mode only. Production rendering via
- * <GissenRender> (Phase 6) will have zero wrappers.
+ * <GissenRender> has zero wrappers.
  */
 import { computed, defineAsyncComponent, defineComponent, h } from 'vue'
 import { useEditorStore } from '../../composables/useEditorStore'
+import { resolveNode } from '../../render/resolve'
 import CanvasNodeActions from './CanvasNodeActions.vue'
 
 // Lazy import to break the CanvasNode ↔ CanvasSlot circular dependency
@@ -36,22 +37,9 @@ export default defineComponent({
   setup(props) {
     const store = useEditorStore()
 
-    const componentConfig = computed(() => store.config.components[props.component.type])
-
-    const slotFieldNames = computed((): string[] => {
-      if (!componentConfig.value)
-        return []
-      return Object.entries(componentConfig.value.fields)
-        .filter(([, field]) => field.type === 'slot')
-        .map(([name]) => name)
-    })
-
-    const propsWithoutSlots = computed((): Record<string, unknown> => {
-      const slotSet = new Set(slotFieldNames.value)
-      return Object.fromEntries(
-        Object.entries(props.component.props).filter(([key]) => !slotSet.has(key)),
-      )
-    })
+    // Shared resolution seam with GissenRender: config lookup, props/slot
+    // split. Only the DOM around the resolved component is editor-specific.
+    const resolved = computed(() => resolveNode(store.config, props.component))
 
     return (): VNode => {
       const id = props.component.props.id
@@ -62,17 +50,18 @@ export default defineComponent({
         store.selectComponent(id)
       }
 
+      const { config: componentConfig, props: componentProps, slots } = resolved.value
+
       let inner: VNode
-      if (!componentConfig.value) {
+      if (!componentConfig) {
         inner = h('div', { class: 'gissen-node--error' }, `Unknown component: ${props.component.type}`)
       }
       else {
         const slotMap: Record<string, () => VNode[]> = {}
-        for (const slotName of slotFieldNames.value) {
-          const children = (props.component.props[slotName] as ComponentData[]) ?? []
+        for (const [slotName, children] of Object.entries(slots)) {
           slotMap[slotName] = () => [h(CanvasSlot, { parentId: id, slotName, children })]
         }
-        inner = h(componentConfig.value.render, propsWithoutSlots.value, slotMap)
+        inner = h(componentConfig.render, componentProps, slotMap)
       }
 
       return h(
