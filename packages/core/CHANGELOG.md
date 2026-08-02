@@ -1,5 +1,11 @@
 # gissen
 
+## 0.1.0-alpha.6
+
+### Patch Changes
+
+- Fixed the published type declarations: dist/\*.d.ts are now self-contained (no .vue imports), so GissenEditor is fully typed for consumers — the config prop and v-model:data are type-checked, and defineGissenConfig inference survives the package boundary. The editor now degrades gracefully instead of crashing at startup when a root.render component does not render its default slot (drag-and-drop is skipped with a clear dev-mode error). LICENSE is now included in the npm tarball.
+
 ## 0.1.0-alpha.5
 
 ### Minor Changes
