@@ -15,8 +15,17 @@ const store = useEditorStore()
 const rootEl = ref<HTMLElement | null>(null)
 useSelection(rootEl)
 
+// The canvas zone lives inside GissenRoot's default slot, so a `root.render`
+// component that never renders that slot leaves `innerEl` null — the DnD
+// layer skips init for it (dev error below) instead of crashing the app.
 const innerEl = ref<HTMLElement | null>(null)
-useCanvasZoneDnD(innerEl, () => ({ parentId: null, slotName: null }))
+useCanvasZoneDnD(innerEl, () => ({ parentId: null, slotName: null }), {
+  missingElementMessage:
+    '[Gissen] The canvas drop zone never mounted, so drag-and-drop is disabled '
+    + 'for this editor. Does your `root.render` component render its default '
+    + 'slot? The editor canvas mounts inside it — add `<slot />` to the root '
+    + 'component.',
+})
 
 // Viewport preview measurements for scale-to-fit: the pane width decides
 // whether the preset even fits, the frame height sizes the scroll-extent

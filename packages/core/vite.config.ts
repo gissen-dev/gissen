@@ -10,6 +10,18 @@ export default defineConfig({
       tsconfigPath: './tsconfig.json',
       include: ['src'],
       bundleTypes: true,
+      // Both options below are required for the published declarations to be
+      // self-contained (no `.vue` imports — consumers saw GissenEditor as `any`
+      // in every alpha ≤ 0.1.0-alpha.5):
+      // - processor 'vue' must be explicit: the plugin's auto-detection scans
+      //   only two directory levels for `.vue` files, ours sit at
+      //   src/components/**, so it silently fell back to the ts processor and
+      //   emitted no declarations for SFCs at all.
+      // - cleanVueFileName rewrites `.vue` import specifiers to extension-less
+      //   ones in the interim declarations, so api-extractor can resolve the
+      //   SFC's dts and inline it instead of leaving the import verbatim.
+      processor: 'vue',
+      cleanVueFileName: true,
     }),
   ],
   define: {

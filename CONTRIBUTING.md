@@ -72,6 +72,34 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm build
 
 CI runs exactly these steps (see [.github/workflows/ci.yml](./.github/workflows/ci.yml)).
 
+## Releasing (maintainers)
+
+Releases go through the [Release workflow](./.github/workflows/release.yml)
+(`pnpm release` under the hood), which runs the **consumer probe** as a required
+pre-publish step:
+
+```bash
+pnpm probe:consumer
+```
+
+The probe builds the package, packs the real tarball with `npm pack`, installs
+it into a scratch Vue + TypeScript app **outside** the workspace, and runs
+`vue-tsc` over fixture code that asserts the published types actually work for
+a consumer: `GissenEditor`/`GissenRender` are fully typed (not `any`), a
+malformed `config` is a type error, `defineGissenConfig` inference survives the
+package boundary, and the `gissen/render` subpath types resolve. It also checks
+that the declarations are self-contained (no `.vue` imports, no references
+outside `dist`) and that the tarball carries README + package metadata.
+
+**Why this is mandatory:** two serious defects (a CI ordering bug, and
+`dist/index.d.ts` importing a `.vue` path that doesn't exist in the published
+package — shipping in every alpha up to 0.1.0-alpha.5) were invisible from
+inside the monorepo, where workspace aliases resolve types from `src/`. Only a
+consumer-perspective install sees what actually ships, so that verification is
+permanent process now. Never publish with a red or skipped probe. If the probe
+fails, run `PROBE_KEEP=1 pnpm probe:consumer` and inspect the kept scratch
+directory.
+
 ## Branches & commits
 
 - Branch off `main`. Use a short, descriptive name, e.g.

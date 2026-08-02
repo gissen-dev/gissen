@@ -23,7 +23,8 @@
     "typecheck": "pnpm -r --if-present run typecheck",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "pnpm --filter gissen build && changeset publish"
+    "probe:consumer": "bash scripts/consumer-probe/run.sh",
+    "release": "pnpm --filter gissen build && pnpm probe:consumer && changeset publish"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.12.0",
