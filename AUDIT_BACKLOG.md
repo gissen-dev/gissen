@@ -109,18 +109,26 @@ parts of M-2/M-3, plus L-9 and L-10). Kept here so they aren't lost.
   root component never renders the slot (observed with a `template`-string
   component under Nuxt's runtime-only Vue build), `innerEl` stays `null`,
   `useDraggable` hands it to Sortable, and app init dies with the cryptic
-  ``Sortable: `el` must be an HTMLElement, not [object Null]``. EditorCanvas
-  should check `innerEl` after mount, log a clear dev error ("does your
-  root.render component render its default slot?"), and skip DnD init instead
-  of crashing. _Status: open (deferred — changes editor behavior; found by
-  manual QA on an invalid setup)._
+  ``Sortable: `el` must be an HTMLElement, not [object Null]``. _Status:
+  **fixed in the pre-Phase-7 hardening batch** — `useCanvasZoneDnD` defers
+  Sortable init (`immediate: false` + manual start after mount) and skips it
+  with a dev-mode error ("does your root.render component render its default
+  slot?") when the zone element is absent; the editor degrades to
+  editing-without-DnD instead of crashing. Pinned by an unmocked-Sortable
+  regression test (`tests/components/canvas-degradation.test.ts`); see
+  `docs/devlog/hardening-pre-phase-7.md`._
 - **`dist/index.d.ts` still imports `./components/GissenEditor.vue`.** The dts
   bundling never resolved the SFC's types, so the published `index.d.ts` starts
   with an unresolvable `.vue` import and consumers see `GissenEditor` as `any`
   — its props (`config`, `v-model:data`) are not type-checked in consumer code.
   Pre-existing (verified present on `main`); masked every config-typing bug
-  until Phase 6's plain-`.ts` `GissenRender` shipped real types. Fix likely
-  requires vue-tsc-based dts generation for SFC exports. _Status: open._
+  until Phase 6's plain-`.ts` `GissenRender` shipped real types. _Status:
+  **fixed in the pre-Phase-7 hardening batch** — the plugin's Vue processor was
+  never running (auto-detection misses `.vue` files deeper than two directory
+  levels); `processor: 'vue'` + `cleanVueFileName: true` in `vite.config.ts`
+  produce a self-contained bundled dts. Verified from a consumer install both
+  ways (fix present/absent) by the new required-pre-publish probe
+  (`pnpm probe:consumer`); see `docs/devlog/hardening-pre-phase-7.md`._
 
 ## Fixed by the validation-tolerance follow-up (2026-07-04)
 

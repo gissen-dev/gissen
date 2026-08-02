@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
 import type { EditorStore } from './useEditorStore'
+import { onMounted } from 'vue'
 import { useDraggable } from 'vue-draggable-plus'
 import { isTypeAllowedInSlot } from '../utils/data'
 import { findComponent, isAncestorOf } from '../utils/tree'
@@ -53,14 +54,21 @@ export function useSidebarDnD(el: Ref<HTMLElement | null>): void {
  *
  * @param el - the container element (canvas inner div or slot div)
  * @param getZone - getter returning current parentId/slotName (must be stable for cycle checks)
+ * @param options.missingElementMessage - dev-mode error logged when the zone element is absent after mount
  */
 export function useCanvasZoneDnD(
   el: Ref<HTMLElement | null>,
   getZone: () => { parentId: string | null, slotName: string | null },
+  options?: { missingElementMessage?: string },
 ): void {
   const store = useEditorStore()
 
-  useDraggable(el, {
+  const draggable = useDraggable(el, {
+    // Init is manual (onMounted below): Sortable throws when handed a null
+    // element, and with eager init that throw happened during app mount and
+    // took the whole host app down — e.g. a `root.render` component that never
+    // renders its default slot leaves the canvas zone element unmounted.
+    immediate: false,
     group: {
       name: store.dndGroup,
       pull: true,
@@ -149,5 +157,21 @@ export function useCanvasZoneDnD(
       const zone = getZone()
       store.moveComponent(id, zone.parentId, zone.slotName, storeIndex)
     },
+  })
+
+  // Degrade instead of crashing: when the zone element never mounted, skip
+  // DnD init entirely — the editor still renders and edits, it just can't
+  // drag. A dev-mode error explains the likely cause; production is silent.
+  onMounted(() => {
+    if (el.value === null) {
+      if (__DEV__) {
+        console.error(
+          options?.missingElementMessage
+          ?? '[Gissen] Drop-zone element not found after mount — drag-and-drop is disabled for this zone.',
+        )
+      }
+      return
+    }
+    draggable.start()
   })
 }
