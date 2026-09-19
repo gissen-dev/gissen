@@ -18,13 +18,14 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "vitest run",
+    "test": "tsup && vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "gissen": "workspace:*",
-    "jiti": "2.7.0"
+    "jiti": "2.7.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^20.19.41",

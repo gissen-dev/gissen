@@ -22,15 +22,12 @@ afterEach(() => {
 })
 
 describe('run', () => {
-  it('returns 0 and prints the grammar to stderr only, never stdout, on the happy path', async () => {
-    const code = await run(['--config', validConfig, '--data', validData])
-
-    expect(code).toBe(0)
-    expect(stdoutSpy).not.toHaveBeenCalled()
-    expect(stderrSpy).toHaveBeenCalled()
-    const stderrOutput = stderrSpy.mock.calls.map(call => call[0]).join('')
-    expect(stderrOutput).toContain('Hero')
-  })
+  // The happy path now blocks inside serveOverStdio() until the transport
+  // closes, so it can no longer be exercised as a simple "call run() and
+  // check the return value" unit test — that coverage (including stdout
+  // purity, now proven against a real pipe rather than a spy) moved to
+  // tests/integration/stdio-server.test.ts. The failure paths below never
+  // reach serve(), so they're unaffected and stay here.
 
   it('returns 1 and reports the missing flag when args are incomplete', async () => {
     const code = await run(['--config', validConfig])
