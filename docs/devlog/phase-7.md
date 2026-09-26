@@ -1,5 +1,29 @@
 # Phase 7 — MCP server (`gissen-mcp`)
 
+## 2026-09-26 — the defaultProps guard didn't catch its own null case
+
+Two independent review agents, working separately, both flagged the same
+gap in the guard added on 2026-09-18: `createNode` re-runs
+`resolveFieldValue` on each of a config's `defaultProps` specifically to
+catch an invalid default before a node is created, but `resolveFieldValue`
+treats a literal `null` as the agent-facing "clear this field" signal for
+`update_component` — for `null` it *resolves* a value (`''` or `undefined`)
+rather than throwing. The guard only caught thrown exceptions and discarded
+the resolved value either way, so `defaultProps: { title: null }` on a text
+field produced neither an error nor a normalized value: the node kept the
+literal `null`, `add_component` reported success, and only the later
+post-mutation `validateData` check rejected it — with the wrong, generic
+"this is a bug in gissen-mcp, please report it" wording instead of the
+guard's own config-blaming `InvalidDefaultPropError`. No data was ever
+written either way; only the error message misattributed the fault.
+Reproduced directly before fixing: a scratch config with that exact default
+confirmed `addComponent` didn't throw, `node.props.title` stayed a literal
+`null`, and `validateData` rejected it downstream. Fixed by checking `null`
+before calling `resolveFieldValue` at all, rather than folding it into the
+same try/catch (`packages/mcp/src/document/create-node.ts`) — deliberately
+rejecting rather than normalizing, so `null`'s meaning doesn't quietly
+depend on whether it showed up in `defaultProps` or in an agent's edit.
+
 ## 2026-09-19 — a review agent caught a mutation silently narrowing file permissions
 
 Independent review of the atomic write (`packages/mcp/src/data-file.ts`)
