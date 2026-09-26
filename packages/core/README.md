@@ -77,9 +77,9 @@ Full docs at **[gissen.dev](https://gissen.dev)** — Config API reference, slot
 |---|---|
 | Editor canvas with drag-and-drop | ✓ Available |
 | Keyboard shortcuts (Escape / Delete) | ✓ Available |
-| Properties panel | In progress |
-| Production renderer (`<GissenRender>`) | In progress |
-| MCP server for AI agents | In progress |
+| Properties panel | ✓ Available |
+| Production renderer (`<GissenRender>`) | ✓ Available |
+| MCP server for AI agents ([`gissen-mcp`](https://github.com/gissen-dev/gissen/tree/main/packages/mcp)) | ✓ Available |
 
 ## License
 

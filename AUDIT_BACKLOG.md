@@ -60,8 +60,10 @@ parts of M-2/M-3, plus L-9 and L-10). Kept here so they aren't lost.
   `vue/singleline-html-element-content-newline` warnings in
   `examples/basic-nuxt/components/*.vue` (fixable with `pnpm lint:fix`).
   _Status: open (warnings only, lint still passes)._
-- **N-8 — Tagline vs. stubs.** `packages/mcp` and `packages/create-gissen-app`
-  are "not implemented" stubs while the README leads with "Agent-native."
+- **N-8 — Tagline vs. stubs.** `packages/create-gissen-app` is a "not
+  implemented" stub while the README leads with "Agent-native." (The other
+  half of this item closed in Phase 7: `packages/mcp` is a working MCP
+  server, not a stub — see `docs/devlog/phase-7.md`.)
   _Status: open (acceptable for pre-alpha)._
 - **N-9 — Reserved-`id` refine does not cover `root.fields`.** The H-3 fix
   rejects a component field named `id`, but the root schema
