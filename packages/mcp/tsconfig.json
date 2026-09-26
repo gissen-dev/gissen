@@ -2,6 +2,13 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "rootDir": "src",
+    // The root tsconfig's `paths` point `gissen` at packages/core/src for IDE
+    // convenience, which pulls core's source tree into this package's
+    // `rootDir`-scoped program (TS6059). Overriding to `{}` here (TS does not
+    // merge `paths` across `extends`) restores normal node_modules
+    // resolution, so `gissen` resolves through its built, self-contained
+    // `dist/index.d.ts` instead.
+    "paths": {},
     "outDir": "dist"
   },
   "include": ["src"]

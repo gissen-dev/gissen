@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import process from 'node:process'
-import { NOT_IMPLEMENTED_MESSAGE } from './messages'
+import { run } from './run'
 
-console.log(NOT_IMPLEMENTED_MESSAGE)
-process.exit(0)
+process.exitCode = await run(process.argv.slice(2))
