@@ -55,4 +55,23 @@ describe('createNode', () => {
     expect(e.field).toBe('level')
     expect(e.value).toBe(99)
   })
+
+  it('throws InvalidDefaultPropError for a null default on a non-slot field, rather than creating the node with a literal null', () => {
+    const config: GissenConfig = {
+      components: {
+        Bad: {
+          fields: { title: { type: 'text' } },
+          defaultProps: { title: null as unknown as string },
+          render: mockRender,
+        },
+      },
+    }
+    const ctx = { config, grammar: buildGrammar(config) }
+    const error = captureError(() => createNode('Bad', ctx))
+    expect(error).toBeInstanceOf(InvalidDefaultPropError)
+    const e = error as InvalidDefaultPropError
+    expect(e.componentType).toBe('Bad')
+    expect(e.field).toBe('title')
+    expect(e.value).toBe(null)
+  })
 })

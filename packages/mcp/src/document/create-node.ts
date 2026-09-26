@@ -17,6 +17,16 @@ import { resolveFieldValue } from './resolve-field-value'
  * `validateData` does — a config declaring `defaultProps: { level: 99 }`
  * against `max: 6` would otherwise let this function emit a node that fails
  * validation the instant it's created.
+ *
+ * `null` is checked separately, before `resolveFieldValue`, rather than
+ * folded into the same try/catch: `resolveFieldValue` treats `null` as the
+ * agent-facing "clear this field" signal for `update_component` and
+ * resolves it (to `''` or `undefined`) instead of throwing. That's the
+ * wrong behavior here — a literal `null` in `defaultProps` is not a user
+ * clearing a field, it's the config itself declaring an invalid default —
+ * and silently laundering it into an accepted empty value would both mask a
+ * likely config mistake and leave `null`'s meaning inconsistent depending on
+ * which of the two places it showed up.
  */
 export function createNode(type: string, ctx: DocumentContext): ComponentData {
   const index = indexGrammar(ctx.grammar)
@@ -32,6 +42,9 @@ export function createNode(type: string, ctx: DocumentContext): ComponentData {
     const value = node.props[field.name]
     if (value === undefined)
       continue
+    if (value === null) {
+      throw new InvalidDefaultPropError(type, field.name, value, 'defaultProps cannot be null — omit the key entirely if you want the field to start unset')
+    }
     try {
       resolveFieldValue(field, value, { componentId: node.props.id, componentType: type })
     }
