@@ -7,9 +7,22 @@
   "homepage": "https://gissen.dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gissen-dev/gissen",
+    "url": "git+https://github.com/gissen-dev/gissen.git",
     "directory": "packages/mcp"
   },
+  "bugs": {
+    "url": "https://github.com/gissen-dev/gissen/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-agent",
+    "vue",
+    "vue3",
+    "visual-editor",
+    "page-builder",
+    "cli"
+  ],
   "bin": {
     "gissen-mcp": "dist/cli.js"
   },
