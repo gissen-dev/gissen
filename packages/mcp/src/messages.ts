@@ -1,6 +1,2 @@
-/**
- * Message printed by the CLI placeholder until the MCP server is implemented.
- * Kept in its own side-effect-free module so it can be imported by tests
- * without executing the CLI entry point.
- */
-export const NOT_IMPLEMENTED_MESSAGE = 'Gissen MCP server — not yet implemented'
+/** Printed as part of a `CliUsageError` when required flags are missing. */
+export const USAGE_MESSAGE = 'Usage: gissen-mcp --config <path-to-gissen.config.ts> --data <path-to-data.json>'
