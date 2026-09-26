@@ -70,6 +70,46 @@ parts of M-2/M-3, plus L-9 and L-10). Kept here so they aren't lost.
   (`config-schemas.ts`, `gissenConfigSchema.root.fields`) accepts one. Root has
   no node identity and no panel editing, so nothing corrupts today — asymmetry
   only. _Status: open._
+- **N-10 — `root.defaultProps` is not validated at all.** The 2026-09-26
+  `defaultProps` fix (see `docs/devlog/phase-7.md`) only extended
+  `componentConfigSchema`'s `.superRefine`; `gissenConfigSchema`'s `root` is a
+  plain `z.object` with no equivalent check, so `root.defaultProps` accepts an
+  out-of-range number, an unknown key, or even `id` — the same class of
+  asymmetry as N-9, just for value checking instead of the reserved-key check.
+  `validateData` does validate `root.props` against `root.fields` (same
+  `validateScalarFieldValue`), so the gap is config-time only. _Status: open._
+
+## MEDIUM (deferred — whole-config / whole-document structural checks)
+
+Both items below need context wider than a single component's own schema for
+a *full* fix — either the fully assembled `GissenConfig` (to resolve another
+component's `allow` list) or the whole document tree (to compare every
+node's `id` against every other) — neither of which fits inside
+`componentConfigSchema`'s per-component `.refine`/`.superRefine`, which runs
+before the surrounding config or document is fully assembled. (The slot item
+also has a shape-only part — e.g. "`defaultProps` must be an array" — that
+needs no such context; that part is skipped by choice, not blocked by this
+constraint — see that bullet.) Grouped here to be designed and resolved
+together, at the v1.0 structural-validation boundary, rather than patched one
+at a time.
+
+- **`defaultProps` for slot fields is not validated by `validateConfig`.**
+  2026-09-26: fixed non-slot `defaultProps` range/type/option/`id`/`null`
+  checking at the source (`validateConfig`, see `docs/devlog/phase-7.md`)
+  but deliberately left slot-field `defaultProps` untouched — a
+  config can declare `defaultProps: { children: 'not-an-array' }` on a slot
+  field, or valid-looking children whose `type` isn't in the slot's `allow`
+  list, and `validateConfig` accepts it; `createComponent` then splices it
+  into the node as-is (with ids regenerated), and only `validateData` catches
+  a malformed result, after the fact. A partial check (e.g. "must be an
+  array") was deliberately not added either — it would create a false
+  impression that slot defaults are covered when allow-list and recursive
+  shape checks still aren't. _Status: open by design._
+- **Node `id` uniqueness is not validated.** `validateData` requires every
+  node to have a non-empty string `id`, but nothing checks that two nodes in
+  the same document don't share one — only `gissen-mcp`'s own
+  `DuplicateComponentIdsError` (a document-level, not config-level, check)
+  catches that today, and only there. _Status: open by design._
 
 ## MEDIUM (deferred by design)
 

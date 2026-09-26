@@ -15,7 +15,6 @@ export type DocumentErrorCode =
   | 'non_finite_number'
   | 'field_type_mismatch'
   | 'slot_field_not_editable'
-  | 'invalid_default_prop'
   | 'type_not_allowed_in_slot'
   | 'node_not_found'
   | 'parent_not_found'
@@ -138,25 +137,6 @@ export class SlotFieldNotEditableError extends DocumentError {
   }
 }
 
-/**
- * Thrown by `createNode` when a config's own `defaultProps` violates that
- * same field's constraints (e.g. `defaultProps: { level: 99 }` against
- * `max: 6`) — `validateConfig` does not range-check `defaultProps`, so this
- * can only be caught here, at the point a node is actually instantiated.
- */
-export class InvalidDefaultPropError extends DocumentError {
-  readonly code = 'invalid_default_prop' as const
-  constructor(
-    readonly componentType: string,
-    readonly field: string,
-    readonly value: unknown,
-    readonly reason: string,
-  ) {
-    super(`Config default for "${field}" on component type "${componentType}" is invalid: ${reason}`)
-    this.name = 'InvalidDefaultPropError'
-  }
-}
-
 export class TypeNotAllowedInSlotError extends DocumentError {
   readonly code = 'type_not_allowed_in_slot' as const
   constructor(
@@ -274,7 +254,6 @@ export type AnyDocumentError =
   | NonFiniteNumberError
   | FieldTypeMismatchError
   | SlotFieldNotEditableError
-  | InvalidDefaultPropError
   | TypeNotAllowedInSlotError
   | NodeNotFoundError
   | ParentNotFoundError

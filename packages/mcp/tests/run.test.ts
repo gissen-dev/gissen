@@ -6,6 +6,7 @@ import { run } from '../src/run'
 const fixturesDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const validConfig = path.join(fixturesDir, 'config', 'gissen.config.ts')
 const malformedConfig = path.join(fixturesDir, 'config', 'malformed.config.ts')
+const outOfRangeDefaultConfig = path.join(fixturesDir, 'config', 'out-of-range-default.config.ts')
 const validData = path.join(fixturesDir, 'data', 'valid.gissen-data.json')
 
 let stdoutSpy: ReturnType<typeof vi.spyOn>
@@ -43,6 +44,21 @@ describe('run', () => {
     expect(code).toBe(1)
     const stderrOutput = stderrSpy.mock.calls.map(call => call[0]).join('')
     expect(stderrOutput).toContain('malformed.config.ts')
+  })
+
+  // `validateConfig` now range-checks `defaultProps` (docs/devlog/phase-7.md,
+  // "validateConfig doesn't range-check defaultProps"), so a config declaring
+  // an out-of-range default fails at startup, before any transport is built.
+  // `createNode` used to carry its own `InvalidDefaultPropError` guard for
+  // exactly this case, added back when only `gissen-mcp` caught it; that
+  // guard is gone now that this fails earlier, at config load.
+  it('refuses to start and names the component and field for an out-of-range defaultProps value', async () => {
+    const code = await run(['--config', outOfRangeDefaultConfig, '--data', validData])
+
+    expect(code).toBe(1)
+    const stderrOutput = stderrSpy.mock.calls.map(call => call[0]).join('')
+    expect(stderrOutput).toContain('Hero')
+    expect(stderrOutput).toContain('level')
   })
 
   it('returns 1 and names the path for an unreadable data file', async () => {
