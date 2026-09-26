@@ -23,6 +23,13 @@ describe('loadGissenConfig', () => {
     await expect(loadGissenConfig(configPath)).rejects.toThrow(/reserved/)
   })
 
+  it('rejects a config whose defaultProps is out of its own field\'s range, naming the component and field', async () => {
+    const configPath = path.join(fixturesDir, 'out-of-range-default.config.ts')
+    await expect(loadGissenConfig(configPath)).rejects.toThrow(ConfigLoadError)
+    await expect(loadGissenConfig(configPath)).rejects.toThrow(/Hero/)
+    await expect(loadGissenConfig(configPath)).rejects.toThrow(/level/)
+  })
+
   it('rejects a config that throws during module evaluation, naming the file', async () => {
     const configPath = path.join(fixturesDir, 'reference-error.config.ts')
     await expect(loadGissenConfig(configPath)).rejects.toThrow(ConfigLoadError)

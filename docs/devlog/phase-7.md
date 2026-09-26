@@ -119,4 +119,35 @@ rejects, on the very first call. Guarded at node creation
 (`packages/mcp/src/document/create-node.ts`) with a new error naming the
 config field responsible, not the caller's request. The same latent trap
 exists in core's editor (`createComponent` is shared code) — recorded here
-rather than fixed, out of scope for this phase.
+rather than fixed, out of scope for this phase — see the 2026-09-26 update
+below.
+
+**2026-09-26 update — fixed at the source.** `validateConfig` now rejects a
+*non-slot* `defaultProps` entry that violates its own field's type, number
+`min`/`max`/finiteness, or select `options`, plus a `defaultProps` key with
+no matching field, a literal `null` on a non-slot field, and the reserved
+`id` key (`packages/core/src/validation/config-schemas.ts`). (Slot-field
+`defaultProps` — including a literal `null` there — is untouched by this fix;
+see the `AUDIT_BACKLOG.md` reference below.) The range/type/option rules are
+not duplicated: `validateData`'s per-field checks were extracted into a
+shared `validateScalarFieldValue`
+(`packages/core/src/validation/field-value-rules.ts`), used by both
+`validateData` (live props) and `validateConfig` (`defaultProps`), so the two
+can't drift apart. `null` and non-finite-number rejection stay local to
+`validateConfig` instead of moving into the shared function, since neither
+applies to `validateData`'s live-prop checks the same way. This closes the
+trap for the editor too, since `createComponent` is shared code and every
+config now goes through the fixed `validateConfig` before a node is ever
+built.
+
+Consequently, `gissen-mcp`'s own `InvalidDefaultPropError` guard in
+`createNode` — added earlier the same day, in the entry above, as a
+gissen-mcp-only workaround — became unreachable: `run()` loads and validates
+the config before any node is ever created, so a config with this defect now
+fails at server startup with a `validateConfig` error that names the
+component and field at least as specifically as the guard's own message did
+(and, for select/number violations, more specifically — it states the
+allowed range or options, not just "is out of range"). The guard, its error
+class, and its now-dead tests were removed. Slot-field `defaultProps` stays
+unvalidated by this fix — see `AUDIT_BACKLOG.md` ("MEDIUM (deferred —
+whole-config / whole-document structural checks)").

@@ -18,7 +18,6 @@ const instances: DocumentError[] = [
   new errors.NonFiniteNumberError('id1', 'Hero', 'level', Number.NaN),
   new errors.FieldTypeMismatchError('id1', 'Hero', 'title', 'text', 'number', 42),
   new errors.SlotFieldNotEditableError('id1', 'Hero', 'children', ['children']),
-  new errors.InvalidDefaultPropError('Hero', 'level', 99, 'out of range'),
   new errors.TypeNotAllowedInSlotError('p1', 'Container', 'children', 'Hero', ['Text']),
   new errors.NodeNotFoundError('id1'),
   new errors.ParentNotFoundError('p1'),

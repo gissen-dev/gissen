@@ -78,9 +78,6 @@ export function formatDocumentError(error: AnyDocumentError, ctx: FailureContext
     case 'slot_field_not_editable':
       return `"${error.field}" is a slot field on component "${error.componentId}" (type "${error.componentType}") and holds child components, so it cannot be set with update_component. Use add_component, move_component or delete_component to change children. Slot fields on ${error.componentType}: ${quoteList(error.slotFields)}.`
 
-    case 'invalid_default_prop':
-      return `Cannot create a "${error.componentType}": this project's config declares an invalid default for field "${error.field}" (${formatValue(error.value)}) — ${error.reason}. This is a problem in the Gissen config, not in your request; fix defaultProps for ${error.componentType}.`
-
     case 'type_not_allowed_in_slot':
       return error.allowedTypes.length > 0
         ? `Component type "${error.rejectedType}" is not allowed in slot "${error.slot}" of component "${error.parentId}" (type "${error.parentType}"). That slot accepts: ${quoteList(error.allowedTypes)}. Place it where it is accepted, or omit parentId to place it at the top level.`

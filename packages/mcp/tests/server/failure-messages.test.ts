@@ -6,7 +6,6 @@ import {
   FieldIsNotASlotError,
   FieldTypeMismatchError,
   IndexOutOfRangeError,
-  InvalidDefaultPropError,
   InvalidSelectValueError,
   MoveIntoDescendantError,
   MoveIntoSelfError,
@@ -161,13 +160,6 @@ describe('formatDocumentError', () => {
     const error = new SlotFieldNotEditableError('c1', 'Container', 'children', ['children'])
     expect(formatDocumentError(error, reading)).toBe(
       '"children" is a slot field on component "c1" (type "Container") and holds child components, so it cannot be set with update_component. Use add_component, move_component or delete_component to change children. Slot fields on Container: "children".',
-    )
-  })
-
-  it('invalid_default_prop', () => {
-    const error = new InvalidDefaultPropError('Hero', 'level', 99, 'Prop "level" must be <= 6 (got 99)')
-    expect(formatDocumentError(error, reading)).toBe(
-      'Cannot create a "Hero": this project\'s config declares an invalid default for field "level" (99) — Prop "level" must be <= 6 (got 99). This is a problem in the Gissen config, not in your request; fix defaultProps for Hero.',
     )
   })
 
