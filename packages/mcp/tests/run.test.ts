@@ -30,6 +30,28 @@ describe('run', () => {
   // tests/integration/stdio-server.test.ts. The failure paths below never
   // reach serve(), so they're unaffected and stay here.
 
+  // `--help` is the one path that legitimately writes to stdout: it never
+  // builds a transport, so there is no JSON-RPC stream to keep clean. It also
+  // has to work without the two flags every other invocation requires.
+  it.each(['--help', '-h'])('prints help to stdout and exits 0 for %s', async (flag) => {
+    const code = await run([flag])
+
+    expect(code).toBe(0)
+    const stdoutOutput = stdoutSpy.mock.calls.map(call => call[0]).join('')
+    expect(stdoutOutput).toContain('Usage: gissen-mcp')
+    expect(stdoutOutput).toContain('--config')
+    expect(stdoutOutput).toContain('--data')
+    expect(stderrSpy).not.toHaveBeenCalled()
+  })
+
+  it('answers help even when the serving flags are also present', async () => {
+    const code = await run(['--config', validConfig, '--data', validData, '--help'])
+
+    expect(code).toBe(0)
+    const stdoutOutput = stdoutSpy.mock.calls.map(call => call[0]).join('')
+    expect(stdoutOutput).toContain('Usage: gissen-mcp')
+  })
+
   it('returns 1 and reports the missing flag when args are incomplete', async () => {
     const code = await run(['--config', validConfig])
 

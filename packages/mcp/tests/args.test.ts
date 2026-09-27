@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { parseCliArgs } from '../src/args'
+import { isHelpRequested, parseCliArgs } from '../src/args'
 import { CliUsageError } from '../src/errors'
 
 describe('parseCliArgs', () => {
@@ -28,5 +28,20 @@ describe('parseCliArgs', () => {
 
   it('rejects an unrecognized flag', () => {
     expect(() => parseCliArgs(['--config', 'a.config.ts', '--data', 'a.json', '--bogus'])).toThrow(CliUsageError)
+  })
+})
+
+describe('isHelpRequested', () => {
+  it.each(['--help', '-h'])('recognizes %s', (flag) => {
+    expect(isHelpRequested([flag])).toBe(true)
+  })
+
+  it('recognizes help alongside the other flags', () => {
+    expect(isHelpRequested(['--config', 'a.config.ts', '--data', 'a.json', '--help'])).toBe(true)
+  })
+
+  it('is false for an invocation that asks to serve', () => {
+    expect(isHelpRequested(['--config', 'a.config.ts', '--data', 'a.json'])).toBe(false)
+    expect(isHelpRequested([])).toBe(false)
   })
 })

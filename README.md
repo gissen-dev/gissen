@@ -6,16 +6,17 @@
 
 Gissen is an open-source headless visual editor for Vue 3. Developers register
 their existing Vue components with a typed config object; end-users (or AI
-agents, via an MCP server) drag and drop those components onto a canvas to build
-pages. The output is JSON describing the page tree, which the developer renders
-back into real Vue components in their app.
+agents, via [an MCP server](./packages/mcp)) drag and drop those components onto
+a canvas to build pages. The output is JSON describing the page tree, which the
+developer renders back into real Vue components in their app.
 
 It is the Vue equivalent of [Puck](https://github.com/puckeditor/puck), the
 React-based visual editor.
 
 > **Status:** pre-alpha. APIs are unstable. The editor canvas with
 > drag-and-drop, the properties panel, undo/redo history, viewport preview,
-> and the production renderer (`<GissenRender>`, SSR-ready) are functional.
+> the production renderer (`<GissenRender>`, SSR-ready), and the MCP server for
+> AI agents are functional.
 
 ## Demo & deep dive
 
@@ -98,6 +99,38 @@ const data: GissenData = JSON.parse(localStorage.getItem('page') ?? '{"root":{"p
 
 See the [documentation](https://gissen.dev) and the
 [basic-nuxt example](./examples/basic-nuxt) for the full tour, including SSR.
+
+## AI agents (MCP)
+
+The same config drives [`gissen-mcp`](./packages/mcp), a Model Context Protocol
+server that lets an AI agent read and edit a page tree on disk. Nothing to
+install — your client spawns it through `npx`:
+
+```json
+{
+  "mcpServers": {
+    "gissen": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "gissen-mcp",
+        "--config",
+        "/absolute/path/to/your/gissen.config.ts",
+        "--data",
+        "/absolute/path/to/your/page.json"
+      ]
+    }
+  }
+}
+```
+
+The agent is constrained by that config: the component types, fields, select
+options, and slot `allow` lists you declared become the tool schemas it sees, so
+it can only build with components you registered — and every rejected edit names
+what was wrong and what's available instead.
+
+Setup for Claude Desktop and Cursor, the five tools, and the config
+constraints in detail: [`gissen-mcp` README](./packages/mcp/README.md).
 
 ## Monorepo structure
 

@@ -11,6 +11,16 @@ export interface CliArgs {
   dataPath: string
 }
 
+/**
+ * True when the invocation asks for the help text. Deliberately a plain token
+ * scan rather than a `parseArgs` pass: help has to be answerable on its own,
+ * without the two flags `parseCliArgs` insists on, and it should still win
+ * when paired with a flag that would otherwise fail parsing.
+ */
+export function isHelpRequested(argv: string[]): boolean {
+  return argv.includes('--help') || argv.includes('-h')
+}
+
 /** Parses and validates the CLI's two required flags, resolving both to absolute paths. */
 export function parseCliArgs(argv: string[]): CliArgs {
   const values = parseFlags(argv)

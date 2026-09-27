@@ -2,23 +2,21 @@
 
 > The headless visual editor for Vue. Agent-native, self-hostable, MIT-licensed.
 
-> **Pre-alpha — APIs are unstable. Not published yet; run it from source.**
+> **Pre-alpha — APIs are unstable.**
 
 `gissen-mcp` is a Model Context Protocol server that lets an AI agent read and edit a Gissen page tree on disk. It's constrained by your own [`gissen`](https://www.npmjs.com/package/gissen) config: the component types, fields, select options, and slot `allow` lists you've declared become the tool schemas the agent sees — an agent can only build with the components you've registered, and every rejected edit names what was wrong and what's available instead.
 
 ## Setup
 
-This package isn't on npm yet, so it's run from a built checkout of the monorepo:
+Nothing to install — your MCP client spawns the server through `npx`, which fetches and caches it on first run:
 
 ```bash
-git clone https://github.com/gissen-dev/gissen
-cd gissen
-pnpm install
-pnpm --filter gissen build
-pnpm --filter gissen-mcp build
+npx gissen-mcp --config ./gissen.config.ts --data ./page.json
 ```
 
-That produces `packages/mcp/dist/cli.js`. The snippets below reference it by absolute path — the tool doesn't need to be installed anywhere; the client spawns it directly.
+You supply two files from your own project: the `gissen.config.ts` that declares your components (this is what constrains the agent), and the JSON file holding the page tree it may edit.
+
+While the package is pre-alpha, `latest` moves with every release. Pin an exact version in long-lived client configs if you'd rather upgrade deliberately: `gissen-mcp@0.1.0-alpha.0`.
 
 ## Connect it to Claude Desktop
 
@@ -31,9 +29,10 @@ Edit the config file (create it if it doesn't exist yet):
 {
   "mcpServers": {
     "gissen": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "/absolute/path/to/gissen/packages/mcp/dist/cli.js",
+        "-y",
+        "gissen-mcp",
         "--config",
         "/absolute/path/to/your/gissen.config.ts",
         "--data",
@@ -54,9 +53,10 @@ Same shape, in `.cursor/mcp.json` (project-local) or `~/.cursor/mcp.json` (globa
 {
   "mcpServers": {
     "gissen": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "/absolute/path/to/gissen/packages/mcp/dist/cli.js",
+        "-y",
+        "gissen-mcp",
         "--config",
         "/absolute/path/to/your/gissen.config.ts",
         "--data",
@@ -70,10 +70,11 @@ Same shape, in `.cursor/mcp.json` (project-local) or `~/.cursor/mcp.json` (globa
 ## CLI usage
 
 ```bash
-node dist/cli.js --config <path-to-gissen.config.ts> --data <path-to-data.json>
+npx gissen-mcp --config <path-to-gissen.config.ts> --data <path-to-data.json>
+npx gissen-mcp --help
 ```
 
-Both flags are required and must be absolute or resolvable from the current directory. On startup the process loads and validates your config, prints its derived grammar to stderr, then serves the five tools below over stdio until the client disconnects. Stdout carries only JSON-RPC — all logging goes to stderr, so it's safe to pipe stdout straight into an MCP client.
+Both flags are required and must be absolute or resolvable from the current directory — in a client config, always absolute: the client decides the working directory, not you. On startup the process loads and validates your config, prints its derived grammar to stderr, then serves the five tools below over stdio until the client disconnects. Stdout carries only JSON-RPC — all logging goes to stderr, so it's safe to pipe stdout straight into an MCP client.
 
 ## The config constraint
 

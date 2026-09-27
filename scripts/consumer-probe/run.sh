@@ -34,9 +34,10 @@
 #      asserts
 #   3. installs BOTH tarballs together (this tree's core + this tree's mcp,
 #      one `npm install`) into a scratch dir OUTSIDE the workspace, runs the
-#      bin with no args (expects the usage error), then runs it against a
-#      fixture config + data file and speaks raw JSON-RPC over its real
-#      stdio to confirm it answers `tools/list` with all five tools. Both
+#      bin with no args (expects the usage error) and with `--help` (expects
+#      the help text on stdout and exit 0), then runs it against a fixture
+#      config + data file and speaks raw JSON-RPC over its real stdio to
+#      confirm it answers `tools/list` with all five tools. Both
 #      tarballs together — not mcp's alone — so the probe exercises this
 #      tree's core, not whatever happens to be the newest release on npm.
 #
@@ -192,6 +193,23 @@ if [[ "$USAGE_OUTPUT" != *"Usage:"* ]]; then
   exit 1
 fi
 
+# `--help` is the first thing anyone types at a new CLI, and the one command
+# whose contract is "prints to stdout, exits 0" — stderr is discarded here so
+# a help text written to the wrong stream fails this check.
+set +e
+HELP_OUTPUT="$("$MCP_BIN" --help 2>/dev/null < /dev/null)"
+HELP_EXIT=$?
+set -e
+if [[ "$HELP_EXIT" -ne 0 ]]; then
+  echo "FAIL: gissen-mcp --help exited $HELP_EXIT, expected 0" >&2
+  exit 1
+fi
+if [[ "$HELP_OUTPUT" != *"Usage:"* ]]; then
+  echo "FAIL: gissen-mcp --help did not print usage to stdout:" >&2
+  echo "$HELP_OUTPUT" >&2
+  exit 1
+fi
+
 INIT_REQUEST='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"consumer-probe","version":"0.0.0"}}}'
 TOOLS_REQUEST='{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
 RPC_OUTPUT="$( { printf '%s\n%s\n' "$INIT_REQUEST" "$TOOLS_REQUEST"; sleep 1; } | "$MCP_BIN" --config "$MCP_SCRATCH_DIR/gissen.config.ts" --data "$MCP_SCRATCH_DIR/page.json" 2>/dev/null )"
@@ -212,9 +230,9 @@ node -e "
     process.exit(1)
   }
 " "$TOOLS_RESPONSE"
-echo "    OK: installs standalone, bin is executable, answers tools/list with all five tools over real stdio"
+echo "    OK: installs standalone, bin is executable, --help exits 0, answers tools/list with all five tools over real stdio"
 
 echo ""
 echo "PASS: gissen-mcp probe green —"
 echo "  tarball has no workspace: leftovers and installs outside the workspace"
-echo "  bin.gissen-mcp resolves, is executable, and runs a real MCP session over stdio"
+echo "  bin.gissen-mcp resolves, is executable, answers --help on stdout, and runs a real MCP session over stdio"
