@@ -9,9 +9,11 @@
     "gissen-mcp": "0.0.0"
   },
   "changesets": [
+    "fix-defaultprops-range-validation",
     "release-28801479559",
     "release-28887542934",
     "release-30467200754",
-    "release-30735317692"
+    "release-30735317692",
+    "release-36318914871"
   ]
 }

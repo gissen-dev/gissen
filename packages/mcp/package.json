@@ -1,7 +1,7 @@
 {
   "name": "gissen-mcp",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha.0",
   "description": "Model Context Protocol server for Gissen, enabling AI agents to build pages.",
   "license": "MIT",
   "homepage": "https://gissen.dev",
