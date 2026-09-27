@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["create-gissen-app", "gissen-mcp", "gissen-docs", "basic-nuxt"]
+  "ignore": ["create-gissen-app", "gissen-docs", "basic-nuxt"]
 }

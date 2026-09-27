@@ -74,22 +74,40 @@ CI runs exactly these steps (see [.github/workflows/ci.yml](./.github/workflows/
 
 ## Releasing (maintainers)
 
-Releases go through the [Release workflow](./.github/workflows/release.yml)
-(`pnpm release` under the hood), which runs the **consumer probe** as a required
-pre-publish step:
+Two packages are published: `gissen` (packages/core) and `gissen-mcp`
+(packages/mcp). Releases go through the
+[Release workflow](./.github/workflows/release.yml) (`pnpm release` under the
+hood) — pick the package and the bump type, type the changelog line, run. See
+[.changeset/README.md](./.changeset/README.md) for how a run picks up pending
+changesets and why releasing `gissen` always drags `gissen-mcp` with it.
+
+The workflow runs the **consumer probe** as a required pre-publish step:
 
 ```bash
 pnpm probe:consumer
 ```
 
-The probe builds the package, packs the real tarball with `npm pack`, installs
-it into a scratch Vue + TypeScript app **outside** the workspace, and runs
-`vue-tsc` over fixture code that asserts the published types actually work for
-a consumer: `GissenEditor`/`GissenRender` are fully typed (not `any`), a
+The probe checks both packages the way a consumer receives them — not the way
+they look from inside the workspace.
+
+For `gissen`: it builds the package, packs the real tarball with `npm pack`,
+installs it into a scratch Vue + TypeScript app **outside** the workspace, and
+runs `vue-tsc` over fixture code that asserts the published types actually work
+for a consumer: `GissenEditor`/`GissenRender` are fully typed (not `any`), a
 malformed `config` is a type error, `defineGissenConfig` inference survives the
 package boundary, and the `gissen/render` subpath types resolve. It also checks
 that the declarations are self-contained (no `.vue` imports, no references
 outside `dist`) and that the tarball carries README + package metadata.
+
+For `gissen-mcp`: it packs with `pnpm pack`, **not** `npm pack` — only pnpm
+rewrites the `gissen: workspace:*` dependency into an installable version pin —
+and asserts no `workspace:` string survived, that `bin.gissen-mcp` is really in
+the tarball with a `#!/usr/bin/env node` shebang, and the same metadata fields.
+Then it installs *both* tarballs together into a scratch dir outside the
+workspace (this tree's core, not whatever is newest on npm), checks the bin is
+executable, runs it with no flags expecting the usage error, and finally speaks
+raw JSON-RPC over its real stdio to confirm it answers `tools/list` with all
+five tools.
 
 **Why this is mandatory:** two serious defects (a CI ordering bug, and
 `dist/index.d.ts` importing a `.vue` path that doesn't exist in the published

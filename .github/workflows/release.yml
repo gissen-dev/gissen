@@ -1,11 +1,22 @@
 name: Release
 
-# One-click release: pick the bump type, type the changelog line, run.
-# The job creates a changeset from those inputs, versions + generates the
+# One-click release: pick the package, the bump type, type the changelog line,
+# run. The job creates a changeset from those inputs, versions + generates the
 # changelog, commits the bump back to main, then builds and publishes to npm.
+#
+# A run releases the chosen package *and* anything else with a pending
+# changeset or a forced dependent bump — gissen-mcp pins gissen exactly
+# (`workspace:*`), so a gissen release always carries gissen-mcp with it.
 on:
   workflow_dispatch:
     inputs:
+      package:
+        description: Package to release
+        type: choice
+        required: true
+        options:
+          - gissen
+          - gissen-mcp
       bump:
         description: Release type
         type: choice
@@ -52,12 +63,13 @@ jobs:
 
       - name: Create changeset from inputs
         env:
+          PACKAGE: ${{ inputs.package }}
           BUMP: ${{ inputs.bump }}
           SUMMARY: ${{ inputs.summary }}
         run: |
           cat > ".changeset/release-${{ github.run_id }}.md" <<EOF
           ---
-          "gissen": ${BUMP}
+          "${PACKAGE}": ${BUMP}
           ---
 
           ${SUMMARY}
@@ -69,7 +81,7 @@ jobs:
       - name: Commit version bump
         run: |
           git add -A
-          git commit -m "release: version gissen (${{ inputs.bump }})"
+          git commit -m "release: version ${{ inputs.package }} (${{ inputs.bump }})"
 
       - name: Build + publish to npm
         run: pnpm release
@@ -78,13 +90,25 @@ jobs:
           NPM_CONFIG_PROVENANCE: 'true'
 
       # In pre mode changesets publishes to the `alpha` dist-tag and won't touch
-      # `latest` (a stable 0.0.1 already exists, so its auto-latest rule is off).
-      # We want a bare `npm install gissen` to resolve the newest alpha, so point
-      # `latest` at the version we just published. Harmless once we exit pre mode.
-      - name: Point latest at the released version
+      # `latest`. Its one exception — publish to `latest` when every published
+      # version is a prerelease — does not apply to either package: gissen has a
+      # stable 0.0.1 and gissen-mcp a placeholder 0.0.0 on npm, so both read as
+      # "already had a regular release". Without this step `latest` would stay
+      # pinned to those ancient versions, and a bare `npm install gissen` or
+      # `npx gissen-mcp` would resolve to them.
+      #
+      # Re-pointing `latest` at a version that is already `latest` is a
+      # successful no-op, so this runs unconditionally for both packages —
+      # whichever one this release actually bumped. Harmless once we exit pre
+      # mode. create-gissen-app is excluded: still an unreleased placeholder.
+      - name: Point latest at the released versions
         run: |
-          VERSION=$(node -p "require('./packages/core/package.json').version")
-          npm dist-tag add gissen@"$VERSION" latest
+          for dir in packages/core packages/mcp; do
+            NAME=$(node -p "require('./$dir/package.json').name")
+            VERSION=$(node -p "require('./$dir/package.json').version")
+            echo "dist-tag add $NAME@$VERSION latest"
+            npm dist-tag add "$NAME@$VERSION" latest
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
