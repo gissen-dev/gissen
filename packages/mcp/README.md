@@ -91,7 +91,7 @@ Your `gissen.config.ts` is loaded with [`jiti`](https://github.com/unjs/jiti), n
 - **`delete_component`** — removes a component and everything nested inside it.
 - **`move_component`** — relocates a component, with its subtree, to a different place in the page.
 
-Every mutation reads the data file fresh, applies the change, validates the result, and writes atomically — a rejected edit never touches the file. Every rejection is instructive: it names what was wrong (an unknown type, an out-of-range value, a slot that doesn't accept that component) and lists what's actually available, so an agent can self-correct without another round trip.
+Every mutation reads the data file fresh, applies the change, validates the result, and writes atomically — a rejected edit never touches the file. Every rejection is instructive: it names what was wrong (an unknown type, an out-of-range value, a slot that doesn't accept that component) and lists what's actually available — the agent learns the constraint from the refusal itself, not from a follow-up `read_page`.
 
 ## Documentation
 
