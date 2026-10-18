@@ -199,3 +199,65 @@ round-tripped documents lack cleared keys.
 - **Editor-output invariant assumed complete `defaultProps`.** Inserting a
   component whose non-slot field has no default yielded a "required prop
   missing" tree. _Fixed by the same tolerance: absent props validate._
+
+## Surfaced during Phase 8 (documentation)
+
+Found while writing the API reference and guides. Labels: **pre-beta** means
+decide before a beta; **breaking** means fixing it changes the public API, so it
+has to land before a beta, not after. The docs describe the current behavior
+and are updated in the same commits as the fixes, which the coverage test
+enforces. Only the server-version entry was fixed in this phase.
+
+- **A render component must declare an `id` prop, or `defineGissenConfig`
+  rejects it.** `InferRenderProps` is `Partial<non-slot fields> & { id: string }`,
+  so a component with only its field props fails the type check with
+  `Property 'id' is missing`. Most components never use the id. Declaring it
+  as a prop also stops Vue from falling it through onto the root element as a
+  DOM attribute. The Quickstart has to explain this on its first component.
+  _Status: open. Options: make `id` optional in `InferRenderProps`, or document
+  it as the convention (current state). Labels: pre-beta, breaking._
+- **`gissen/render` cannot validate.** It exports `GissenRender` and
+  `defineGissenConfig`, not `validateData`. The Rendering guide recommends
+  `gissen/render` for render-only apps and also recommends validating
+  untrusted data before rendering, so a strict render-only app has to import
+  the barrel for one function. _Status: open. Labels: pre-beta._
+- **`validateData` accepts duplicate ids; `gissen-mcp` rejects them.** The MCP
+  document pipeline runs `assertUniqueIds` on every read ("the one check
+  `gissen` itself doesn't make"). A document that `validateData` and the editor
+  accept can therefore be refused by the MCP server. _Status: open. Labels:
+  pre-beta, breaking._
+- **`GissenValidationError.issues` exposes zod's `ZodIssue[]`.** The public
+  type depends on a library the consumer did not choose. The docs tell readers
+  to use `path` and `message` only. _Status: open. Labels: pre-beta,
+  breaking._
+- **`createComponent` throws a plain `Error` for an unknown type.** Every other
+  failure in the public API is a `GissenValidationError`, so one
+  `instanceof` check does not cover all of them. _Status: open. Labels:
+  pre-beta._
+- **`gissen-mcp` reported its version as `0.0.0`.** `SERVER_VERSION` in
+  `packages/mcp/src/server/create-server.ts` was a hand-synced constant and was
+  not updated for `0.1.0-alpha.0`, so a client's initialize handshake showed
+  `gissen-mcp 0.0.0`. _Fixed: the version is injected from package.json at
+  build time (`build-version.ts`, used by tsup and vitest), and two tests
+  compare it with package.json: one in-process, one against the built CLI.
+  Changeset: patch for `gissen-mcp`._
+- **`add_component` takes no `props`.** An agent needs two calls to add a
+  filled-in component: `add_component`, then `update_component`. The tool
+  descriptions say so. Documented as is. _Status: open, possibly by design.
+  Labels: pre-beta._
+- **Public and internal CSS variables share one prefix.** Every `--gissen-*`
+  variable is declared in the same `:root` block, so nothing says which are
+  theme variables and which are layout details. `--gissen-chrome-height` is the
+  clear internal case: its comment describes editor layout, and it is expected
+  to change with a responsive editor layout. The API reference leaves it out,
+  and the coverage test keeps an explicit list of internal variables. Before
+  v1.0, split the public theme variables from the internal ones and move the
+  internal ones to a separate prefix. A documented variable is a semver
+  commitment like an export, so check the six that were first documented in this
+  phase, because the coverage test required them: `--gissen-border-strong`,
+  `--gissen-text-faint`, `--gissen-node-outline`, `--gissen-danger`,
+  `--gissen-danger-light` and `--gissen-radius`. _Status: open. Labels:
+  pre-beta._
+- **`CONTRIBUTING.md` named the docs package `docs`.** The package is
+  `gissen-docs`, so `pnpm --filter docs dev` matched nothing. _Fixed in the
+  Phase 8 documentation pass._

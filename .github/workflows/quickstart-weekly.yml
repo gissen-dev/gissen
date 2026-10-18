@@ -1,0 +1,25 @@
+name: Quickstart (npm)
+
+# Runs the Quickstart page against what is published on npm. The pull request
+# job in ci.yml cannot see this kind of failure: a new create-vite template, a
+# new TypeScript or Vite major, or a broken release all change the outcome
+# without a commit in this repository.
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  quickstart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run the quickstart against npm
+        run: bash scripts/quickstart-check/run.sh --npm

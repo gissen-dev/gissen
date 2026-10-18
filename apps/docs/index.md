@@ -3,20 +3,23 @@ layout: home
 
 hero:
   name: Gissen
-  text: The headless visual editor for Vue.
-  tagline: Agent-native, self-hostable, MIT-licensed.
+  text: A headless visual editor for Vue.
+  tagline: You keep your components. Gissen adds the editor and the renderer.
   actions:
     - theme: brand
-      text: Get Started
-      link: /getting-started
+      text: Quickstart
+      link: /getting-started/quickstart
+    - theme: alt
+      text: API reference
+      link: /api/gissen
 
 features:
-  - title: Headless
-    details: Bring your own components. Gissen adds a visual editing layer on top — no lock-in, no forced styling.
-  - title: Agent-native
-    details: AI agents can build pages programmatically via the Gissen MCP server.
-  - title: Open source
-    details: MIT-licensed. Self-hostable. No vendor dependency.
+  - title: Your components
+    details: Register your own Vue components and choose which props are editable. Gissen does not ship a component library.
+  - title: Plain JSON
+    details: The editor produces a JSON document. You decide where it is stored and how it is loaded.
+  - title: Same render path
+    details: GissenRender draws the document with your components and no editor code around them. It works on the server.
 ---
 
-> **Coming soon — under construction.** Gissen is in pre-alpha. APIs are not yet stable.
+<GissenStatus />
