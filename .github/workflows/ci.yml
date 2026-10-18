@@ -45,7 +45,7 @@ jobs:
   # Runs the Quickstart page exactly as written, outside the workspace, against
   # a tarball packed from this commit. A page and a package that disagree fail
   # here, even before a release. The same script runs against npm every week,
-  # see quickstart-weekly.yml.
+  # see consumer-weekly.yml.
   quickstart:
     runs-on: ubuntu-latest
     steps:
@@ -60,6 +60,14 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
+
+      # The npm bundled with actions/setup-node's Node 20 has hit a known
+      # arborist crash ("Cannot read properties of null (reading 'edgesOut')")
+      # on a plain `npm install` of the current create-vite template — before
+      # this script ever touches our own tarball. Not reproducible locally
+      # against a newer npm; upgrading here is cheaper than pinning Node.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -90,6 +98,10 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
+
+      # See the same step in the `quickstart` job above.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

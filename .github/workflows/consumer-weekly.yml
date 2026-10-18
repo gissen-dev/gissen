@@ -22,6 +22,14 @@ jobs:
         with:
           node-version: 20
 
+      # The npm bundled with actions/setup-node's Node 20 has hit a known
+      # arborist crash ("Cannot read properties of null (reading 'edgesOut')")
+      # on a plain `npm install` of the current create-vite template — before
+      # this script ever touches gissen itself. Not reproducible locally
+      # against a newer npm; upgrading here is cheaper than pinning Node.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
       - name: Run the quickstart against npm
         run: bash scripts/quickstart-check/run.sh --npm
 
@@ -39,6 +47,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      # See the same step in the `quickstart` job above.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
 
       - name: Build examples/${{ matrix.example }} against npm
         run: bash scripts/examples-check/run.sh ${{ matrix.example }} --npm
