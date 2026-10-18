@@ -32,8 +32,14 @@ packages/core/              # gissen — the editor library (Vue components, uti
 packages/mcp/               # gissen-mcp — MCP server for AI agents
 packages/create-gissen-app/ # create-gissen-app — project scaffolder
 apps/docs/                  # VitePress documentation site
-examples/basic-nuxt/        # a runnable Nuxt 4 app using Gissen
+examples/                   # vite-basic, nuxt-ssr, layouts-and-slots, mcp-agent — see examples/*/README.md
 ```
+
+`examples/*` are deliberately not workspace members: each is a standalone
+npm project depending on the published `gissen`/`gissen-mcp`, with its own
+`package-lock.json`. `pnpm install` at the repo root does not touch them; run
+`npm install` inside one directly. `scripts/examples-check/run.sh <name>`
+builds one the way CI does, against either a tarball of this tree or npm.
 
 ## Common commands
 
@@ -57,11 +63,18 @@ pnpm test -- --watch
 pnpm typecheck
 ```
 
-To run the example app or the docs site locally:
+To run the docs site locally:
 
 ```bash
-pnpm --filter basic-nuxt dev        # the Nuxt example
-pnpm --filter gissen-docs dev       # the VitePress docs
+pnpm --filter gissen-docs dev
+```
+
+To run an example, from inside its own directory (see above):
+
+```bash
+cd examples/vite-basic
+npm install
+npm run dev
 ```
 
 ### Writing docs

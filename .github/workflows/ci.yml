@@ -26,10 +26,10 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      # apps/docs and examples/basic-nuxt resolve `gissen` types from
-      # packages/core/dist, which is gitignored — build core before typecheck.
-      # The docs tests also read gissen's dist and start gissen-mcp's built
-      # CLI, so build both.
+      # apps/docs resolves `gissen` types from packages/core/dist, which is
+      # gitignored — build core before typecheck. The docs tests also read
+      # gissen's dist and start gissen-mcp's built CLI, so build both.
+      # (examples/* are not workspace members — see the `examples` job.)
       - name: Build core and mcp
         run: pnpm --filter gissen --filter gissen-mcp build
 
@@ -66,3 +66,33 @@ jobs:
 
       - name: Run the quickstart against this commit
         run: bash scripts/quickstart-check/run.sh --tarball
+
+  # Builds each examples/* app outside the workspace, against tarballs packed
+  # from this commit — the same "does the doc/example agree with the code in
+  # this change" check as `quickstart`, for the examples. Each app installs
+  # and builds independently (locked decision 2); the same script runs
+  # against npm every week, see consumer-weekly.yml.
+  examples:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        example: [vite-basic, nuxt-ssr, layouts-and-slots, mcp-agent]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build examples/${{ matrix.example }} against this commit
+        run: bash scripts/examples-check/run.sh ${{ matrix.example }} --tarball

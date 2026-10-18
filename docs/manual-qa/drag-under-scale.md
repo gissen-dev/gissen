@@ -20,7 +20,9 @@ and a jump back on drop.
 ## Setup
 
 ```bash
-pnpm --filter basic-nuxt dev
+cd examples/nuxt-ssr
+npm install
+npm run dev
 ```
 
 Open the example in Chrome (primary) — repeat in Firefox and Safari if

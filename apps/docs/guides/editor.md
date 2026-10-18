@@ -43,7 +43,7 @@ The preview narrows a frame. It does not resize the browser window, so CSS media
 
 ## Wrapper elements
 
-In the editor, each node sits inside `<div class="gissen-node">`. It draws the selection outline and handles dragging. `GissenRender` does not add it. Do not style your components through that wrapper.
+In the editor, each node sits inside `<div class="gissen-node">`, and the children of a named slot sit inside `<div class="gissen-slot">` (see [Slots and allow lists](./slots#matching-the-editor-s-wrappers)). `GissenRender` adds neither. Nothing in your component should depend on them existing, since `GissenRender` has to produce the same result without them; a component with a slot may still need to style them (`:deep(.gissen-slot)`) to keep its layout consistent between the two, which is a difference you compensate for, not one you build on.
 
 ## Theming
 

@@ -58,8 +58,11 @@ parts of M-2/M-3, plus L-9 and L-10). Kept here so they aren't lost.
   hosts persisting on every emit see no-op saves. _Status: open._
 - **N-7 — Lint formatting warnings in the example.** 18
   `vue/singleline-html-element-content-newline` warnings in
-  `examples/basic-nuxt/components/*.vue` (fixable with `pnpm lint:fix`).
-  _Status: open (warnings only, lint still passes)._
+  `examples/nuxt-ssr/components/*.vue` (fixable with `pnpm lint:fix`).
+  _Status: superseded. Since Phase 8, `examples/**` is excluded from the root
+  eslint config entirely (locked decision 2: examples are consumers, each
+  with its own scaffolded tooling, not this monorepo's conventions) — these
+  warnings no longer surface at all, in either direction._
 - **N-8 — Tagline vs. stubs.** `packages/create-gissen-app` is a "not
   implemented" stub while the README leads with "Agent-native." (The other
   half of this item closed in Phase 7: `packages/mcp` is a working MCP
@@ -261,3 +264,28 @@ enforces. Only the server-version entry was fixed in this phase.
 - **`CONTRIBUTING.md` named the docs package `docs`.** The package is
   `gissen-docs`, so `pnpm --filter docs dev` matched nothing. _Fixed in the
   Phase 8 documentation pass._
+
+## Surfaced during Phase 8, continued (MCP guide and examples)
+
+- **[pre-beta][breaking] Separate schema from render in the config API.**
+  `GissenConfig` couples field schema (pure data, needed in any runtime) with
+  render components (Vue, browser/SSR only). Every non-browser consumer has
+  to work around it: `gissen-mcp` rewrites `.vue` imports to stubs (with a
+  documented residual gap), its fixtures use `render: () => null`, and a
+  Nitro server route validating with `validateData` cannot import the config
+  at all. The `nuxt-ssr` example currently splits schema and render by hand
+  as a workaround. Target: a render-free schema usable anywhere, with the
+  editor config composed from schema plus a component map; `validateData`
+  and `gissen-mcp` consume the schema directly. _Status: open._
+- **A slot component's CSS has to know the editor's own wrapper classes.**
+  `GissenRender` emits a component's named-slot children directly; the
+  editor wraps the same children in its own `.gissen-slot` / `.gissen-node`
+  elements first (see the Editor guide). A component whose layout depends on
+  direct-child selectors (flex/grid rows, gaps) renders correctly in
+  `GissenRender` but breaks in the editor canvas unless it also styles
+  `:deep(.gissen-slot)` and `:deep(.gissen-slot > .gissen-node)` to match.
+  `examples/layouts-and-slots`'s `Columns.vue` and `Column.vue` need this;
+  `examples/nuxt-ssr`'s `Container.vue` already carried it, undocumented,
+  since Phase 6. Nothing in the docs said this convention existed until the
+  Slots guide and this example made it unavoidable to notice. _Status: open.
+  Labels: pre-beta._

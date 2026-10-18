@@ -1,4 +1,6 @@
 packages:
   - packages/*
   - apps/*
-  - examples/*
+  # examples/* are deliberately NOT workspace members: they are consumers of
+  # the published packages (npm, not workspace:*), each with its own
+  # package-lock.json. See examples/*/README.md.

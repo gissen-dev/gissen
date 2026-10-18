@@ -1,6 +1,10 @@
 // Turns getting-started/quickstart.md into a bash script, so the check runs
 // exactly what a reader would run: the shell blocks, in order, and the files
-// the page imports as snippets, copied to the path in their [title].
+// the page imports as snippets, copied to the path given in their [title]
+// (the destination a reader would actually use, which can differ from the
+// snippet's own path in this repo — quickstart.md imports from
+// examples/vite-basic/src/*, a reader's project has no examples/vite-basic
+// prefix).
 //
 // A shell block preceded by `<!-- quickstart-check: skip -->` is left out
 // (the dev server never exits).
@@ -55,16 +59,11 @@ for (const line of page) {
     out.push(line)
     continue
   }
-  const snippet = /^<<< @\/snippets\/quickstart\/(\S+)(?: \[(.+)\])?$/.exec(line)
+  const snippet = /^<<< @\/(\S+) \[(\S+)\]$/.exec(line)
   if (snippet) {
-    const file = snippet[1]
-    // The reader copies the file to the path in the title, so the two must agree.
-    if (snippet[2] !== file) {
-      console.error(`Snippet "${file}" is shown with the title "${snippet[2]}". They must be the same path.`)
-      process.exit(1)
-    }
-    out.push(`mkdir -p "$(dirname "${file}")"`)
-    out.push(`cp "${path.join(docsDir, 'snippets', 'quickstart', file)}" "${file}"`)
+    const [, sourcePath, destPath] = snippet
+    out.push(`mkdir -p "$(dirname "${destPath}")"`)
+    out.push(`cp "${path.resolve(docsDir, sourcePath)}" "${destPath}"`)
   }
 }
 

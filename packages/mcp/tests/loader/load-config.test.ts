@@ -54,14 +54,14 @@ describe('loadGissenConfig', () => {
     await expect(loadGissenConfig(configPath)).rejects.toThrow(/\.vue/)
   })
 
-  // Regression pin: examples/basic-nuxt/gissen.config.ts calls
+  // Regression pin: examples/nuxt-ssr/gissen.config.ts calls
   // `defineComponent`/`h` without importing them — Nuxt supplies both as
   // build-time auto-imports, unavailable when the config is loaded
   // standalone via jiti/Node. This isn't something Phase A fixes (that would
   // mean editing the example app); it's documented here so a future change
   // that accidentally "fixes" it is noticed rather than silently drifting.
   it('documents that the repo\'s real Nuxt example config cannot load standalone', async () => {
-    const configPath = path.join(repoRoot, 'examples', 'basic-nuxt', 'gissen.config.ts')
+    const configPath = path.join(repoRoot, 'examples', 'nuxt-ssr', 'gissen.config.ts')
     await expect(loadGissenConfig(configPath)).rejects.toThrow(/defineComponent/)
   })
 })

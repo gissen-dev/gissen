@@ -29,6 +29,16 @@ The slot name is the field name. A field called `children` needs `<slot name="ch
 - `validateData` rejects a document that has one. The error names the slot and lists the allowed types.
 - `allow` names are checked at validation time, not when you write the config. A name that matches no component simply never matches.
 
+## Matching the editor's wrappers
+
+`GissenRender` puts a slot's children directly where your template's `<slot>` is. The editor canvas does not: it wraps the slot's content in `<div class="gissen-slot">`, and each child in its own `<div class="gissen-node">` (see [Wrapper elements](./editor#wrapper-elements)). A component whose layout depends on its slot's direct children, a flex or grid row with a gap, for example, lays out correctly in `GissenRender` and wrong in the editor, because the direct child there is `.gissen-slot`, not your components.
+
+If that applies to you, style the wrapper classes to match your own layout, scoped with `:deep()`:
+
+<<< @/snippets/guides/slots/wrapper-example.css [wrapper-example.css]
+
+[layouts-and-slots](https://github.com/gissen-dev/gissen/tree/main/examples/layouts-and-slots) has two components that need this (`Columns.vue`, `Column.vue`) and two that do not (`Card.vue`, `Text.vue`, both leaves with no slot of their own).
+
 ## Nesting
 
 Children live in the parent's props, so the page is a tree. A card inside a container looks like this.

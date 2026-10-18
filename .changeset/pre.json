@@ -3,7 +3,6 @@
   "tag": "alpha",
   "initialVersions": {
     "gissen-docs": "0.0.0",
-    "basic-nuxt": "0.0.0",
     "gissen": "0.1.0-alpha.2",
     "create-gissen-app": "0.0.0",
     "gissen-mcp": "0.0.0"

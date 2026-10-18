@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "root": { "props": {} },
+  "content": [
+    {
+      "type": "Hero",
+      "props": {
+        "id": "hero-1",
+        "title": "Edit me with an agent",
+        "subtitle": "Point gissen-mcp at this file and ask it to change this text."
+      }
+    }
+  ]
+}

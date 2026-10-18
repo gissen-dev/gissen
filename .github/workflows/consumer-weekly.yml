@@ -1,0 +1,44 @@
+name: Consumer check (npm)
+
+# Runs the Quickstart page and every examples/* app against what is actually
+# published on npm. The pull request jobs in ci.yml (`quickstart`, `examples`)
+# cannot see this kind of failure: a new create-vite/nuxi template, a new
+# TypeScript/Vite/Nuxt major, or a broken release all change the outcome
+# without a commit in this repository.
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  quickstart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run the quickstart against npm
+        run: bash scripts/quickstart-check/run.sh --npm
+
+  examples:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        example: [vite-basic, nuxt-ssr, layouts-and-slots, mcp-agent]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build examples/${{ matrix.example }} against npm
+        run: bash scripts/examples-check/run.sh ${{ matrix.example }} --npm

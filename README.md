@@ -97,8 +97,8 @@ const data: GissenData = JSON.parse(localStorage.getItem('page') ?? '{"root":{"p
 </template>
 ```
 
-See the [documentation](https://gissen.dev) and the
-[basic-nuxt example](./examples/basic-nuxt) for the full tour, including SSR.
+See the [documentation](https://gissen.dev) and
+[examples/nuxt-ssr](./examples/nuxt-ssr) for the full tour, including SSR.
 
 ## AI agents (MCP)
 
@@ -142,8 +142,7 @@ gissen/
 │   └── create-gissen-app/   # create-gissen-app — project scaffolder
 ├── apps/
 │   └── docs/                # VitePress documentation site
-└── examples/
-    └── basic-nuxt/          # Example Nuxt 4 app using Gissen
+└── examples/                # vite-basic, nuxt-ssr, layouts-and-slots, mcp-agent (see examples/*/README.md)
 ```
 
 ## Development
