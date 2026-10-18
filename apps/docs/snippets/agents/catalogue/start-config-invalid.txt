@@ -1,0 +1,2 @@
+exit code: 1
+Failed to load Gissen config from "/path/to/invalid.config.ts": GissenValidationError: [components.Hero.defaultProps.rating] Prop "rating" must be <= 5 (got 99)

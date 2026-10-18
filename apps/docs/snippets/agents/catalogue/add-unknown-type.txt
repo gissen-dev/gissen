@@ -1,0 +1,15 @@
+MCP error -32602: Input validation error: Invalid arguments for tool add_component: [
+  {
+    "received": "Nope",
+    "code": "invalid_enum_value",
+    "options": [
+      "Hero",
+      "Card",
+      "Container"
+    ],
+    "path": [
+      "type"
+    ],
+    "message": "Invalid enum value. Expected 'Hero' | 'Card' | 'Container', received 'Nope'"
+  }
+]

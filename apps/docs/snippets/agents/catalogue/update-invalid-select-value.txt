@@ -1,0 +1,1 @@
+Invalid value "xl" for select field "size" on component "card-1" (type "Card"). Allowed values: "sm" (Small), "md" (Medium), "lg" (Large). The page was not changed.

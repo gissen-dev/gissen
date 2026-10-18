@@ -1,0 +1,3 @@
+exit code: 1
+Usage error: Unknown option '--wat'
+Usage: gissen-mcp --config <path-to-gissen.config.ts> --data <path-to-data.json>

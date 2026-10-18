@@ -1,0 +1,1 @@
+Field "title" on component "hero-1" (type "Hero") expects a string, received a number (123). Values are not coerced — send the right JSON type. Send null to clear the field. The page was not changed.

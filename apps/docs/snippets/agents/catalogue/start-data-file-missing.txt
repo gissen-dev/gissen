@@ -1,0 +1,2 @@
+exit code: 1
+Cannot read Gissen data file at "/path/to/does-not-exist.json": ENOENT: no such file or directory, access '/path/to/does-not-exist.json'

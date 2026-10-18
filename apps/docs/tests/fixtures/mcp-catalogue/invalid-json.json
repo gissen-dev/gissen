@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "root": { "props": {} },
+  "content": [
+    { "type": "Hero", "props": { "id": "hero-1" }
+  ]

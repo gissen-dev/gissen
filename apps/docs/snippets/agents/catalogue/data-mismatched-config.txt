@@ -1,0 +1,3 @@
+The Gissen data file at "/path/to/page.json" does not match this project's config, so no operation can run:
+  content[1].type: Component type "Ghost" is not registered in config
+Fix the data file, or the config it is validated against, and retry.

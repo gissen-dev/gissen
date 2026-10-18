@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "root": { "props": {} },
+  "content": [
+    { "type": "Hero", "props": { "id": "hero-1", "title": "Hello" } },
+    {
+      "type": "Container",
+      "props": {
+        "id": "container-1",
+        "children": [
+          { "type": "Card", "props": { "id": "card-1", "rating": 3, "size": "md" } },
+          { "type": "Container", "props": { "id": "container-2", "children": [] } }
+        ]
+      }
+    }
+  ]
+}

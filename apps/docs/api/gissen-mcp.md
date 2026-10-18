@@ -8,7 +8,7 @@
 npx gissen-mcp --config /absolute/path/gissen.config.ts --data /absolute/path/page.json
 ```
 
-This page lists the flags, exit codes and tools.
+This page lists the flags, exit codes and tools. For setup with Claude Desktop and Cursor, the config-as-grammar model, and what an agent sees when it is refused, see the [MCP guide](../agents/mcp).
 
 ## CLI flags
 

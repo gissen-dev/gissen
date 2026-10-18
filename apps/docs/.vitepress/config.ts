@@ -11,7 +11,9 @@ export default defineConfig({
     nav: [
       { text: 'Getting started', link: '/getting-started/quickstart' },
       { text: 'Guides', link: '/guides/defining-components' },
+      { text: 'AI agents', link: '/agents/mcp' },
       { text: 'API', link: '/api/gissen' },
+      { text: 'Examples', link: '/examples' },
     ],
 
     sidebar: [
@@ -33,10 +35,22 @@ export default defineConfig({
         ],
       },
       {
+        text: 'AI agents',
+        items: [
+          { text: 'MCP guide', link: '/agents/mcp' },
+        ],
+      },
+      {
         text: 'API reference',
         items: [
           { text: 'gissen and gissen/render', link: '/api/gissen' },
           { text: 'gissen-mcp', link: '/api/gissen-mcp' },
+        ],
+      },
+      {
+        text: 'Examples',
+        items: [
+          { text: 'All examples', link: '/examples' },
         ],
       },
     ],
