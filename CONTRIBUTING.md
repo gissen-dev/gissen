@@ -103,7 +103,7 @@ For `gissen-mcp`: it packs with `pnpm pack`, **not** `npm pack` — only pnpm
 rewrites the `gissen: workspace:*` dependency into an installable version pin —
 and asserts no `workspace:` string survived, that `bin.gissen-mcp` is really in
 the tarball with a `#!/usr/bin/env node` shebang, and the same metadata fields.
-Then it installs *both* tarballs together into a scratch dir outside the
+Then it installs _both_ tarballs together into a scratch dir outside the
 workspace (this tree's core, not whatever is newest on npm), checks the bin is
 executable, runs it with no flags expecting the usage error, and finally speaks
 raw JSON-RPC over its real stdio to confirm it answers `tools/list` with all

@@ -54,14 +54,16 @@ describe('loadGissenConfig', () => {
     await expect(loadGissenConfig(configPath)).rejects.toThrow(/\.vue/)
   })
 
-  // Regression pin: examples/basic-nuxt/gissen.config.ts calls
-  // `defineComponent`/`h` without importing them — Nuxt supplies both as
-  // build-time auto-imports, unavailable when the config is loaded
-  // standalone via jiti/Node. This isn't something Phase A fixes (that would
-  // mean editing the example app); it's documented here so a future change
-  // that accidentally "fixes" it is noticed rather than silently drifting.
-  it('documents that the repo\'s real Nuxt example config cannot load standalone', async () => {
-    const configPath = path.join(repoRoot, 'examples', 'basic-nuxt', 'gissen.config.ts')
-    await expect(loadGissenConfig(configPath)).rejects.toThrow(/defineComponent/)
+  // Regression pin: the repo's own Nuxt example is what the live demo runs
+  // (`pnpm --filter basic-nuxt dev` in one window, this server pointed at the
+  // same `examples/basic-nuxt/page.json` in another), so its config must keep
+  // loading standalone — no Vue, no build pipeline, no Nuxt auto-imports.
+  // That holds only because the config imports nothing but `gissen` and
+  // `.vue` files: a build-time auto-import (`defineComponent`/`h` used
+  // without importing them, as the example's root render once did) or any
+  // other runtime dependency would break it, and break the demo with it.
+  it('loads the repo\'s real Nuxt example config standalone, as the live demo needs', async () => {
+    const config = await loadGissenConfig(path.join(repoRoot, 'examples', 'basic-nuxt', 'gissen.config.ts'))
+    expect(Object.keys(config.components).sort()).toEqual(['Container', 'FeatureCard', 'Hero', 'TextBlock'])
   })
 })

@@ -2,6 +2,7 @@ import { defineGissenConfig } from 'gissen'
 import Container from './components/Container.vue'
 import FeatureCard from './components/FeatureCard.vue'
 import Hero from './components/Hero.vue'
+import PageRoot from './components/PageRoot.vue'
 import TextBlock from './components/TextBlock.vue'
 
 export default defineGissenConfig({
@@ -42,7 +43,7 @@ export default defineGissenConfig({
         icon: { type: 'text', label: 'Icon (emoji)' },
         title: { type: 'text', label: 'Title' },
         description: { type: 'textarea', label: 'Description' },
-        badge: { type: 'number', label: 'Badge number' },
+        badge: { type: 'number', label: 'Badge number', min: 1, max: 99 },
         highlighted: { type: 'boolean', label: 'Highlighted' },
       },
       defaultProps: {
@@ -63,9 +64,6 @@ export default defineGissenConfig({
     },
   },
   root: {
-    render: defineComponent({
-      setup: (_, { slots }) =>
-        () => h('main', { style: 'background:#f5f3f0; padding:2rem;' }, slots.default?.()),
-    }),
+    render: PageRoot,
   },
 })
