@@ -196,6 +196,9 @@ describe('stdio server (spawned subprocess)', () => {
     expect(lines).toHaveLength(1)
     const parsed = JSON.parse(lines[0]!)
     expect(parsed.result.serverInfo.name).toBe('gissen-mcp')
+    // The built CLI, not `src`: this is what proves the build injected the real version.
+    const { version } = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8')) as { version: string }
+    expect(parsed.result.serverInfo.version).toBe(version)
 
     expect(stderr).toContain('Hero')
     expect(stderr).toContain('gissen-mcp ready')
