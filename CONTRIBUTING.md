@@ -60,9 +60,31 @@ pnpm typecheck
 To run the example app or the docs site locally:
 
 ```bash
-pnpm --filter basic-nuxt dev    # the Nuxt example
-pnpm --filter docs dev          # the VitePress docs
+pnpm --filter basic-nuxt dev        # the Nuxt example
+pnpm --filter gissen-docs dev       # the VitePress docs
 ```
+
+### Writing docs
+
+Code in the docs is never typed into a page. Pages import it from real files
+under `apps/docs/snippets/` (`<<< @/snippets/...`), and `pnpm typecheck`
+compiles those files against the real package. Only shell commands and JSON
+may be written inline. `pnpm --filter gissen-docs test` fails if a page has any
+other fenced block or imports a file or region that does not exist.
+
+The API reference (`apps/docs/api/`) is written by hand. The same test run
+compares it with the built packages: every export of `gissen` and
+`gissen/render`, every CSS variable, every `gissen-mcp` flag and every MCP tool
+with its arguments must be documented, and nothing documented may be missing
+from the build. Build first (`pnpm --filter gissen --filter gissen-mcp build`).
+To document a new export, add a ``### `Name` `` section with an `Entry points:`
+line to `apps/docs/api/gissen.md`.
+
+The Quickstart is executed in CI by `scripts/quickstart-check/run.sh`. Run
+`bash scripts/quickstart-check/run.sh` to try it against this tree, or with
+`--npm` against the published packages.
+
+The project status is written once, in `apps/docs/.vitepress/status.ts`.
 
 Before opening a PR, please make sure the full gate passes locally:
 

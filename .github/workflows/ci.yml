@@ -28,8 +28,10 @@ jobs:
 
       # apps/docs and examples/basic-nuxt resolve `gissen` types from
       # packages/core/dist, which is gitignored — build core before typecheck.
-      - name: Build core
-        run: pnpm --filter gissen build
+      # The docs tests also read gissen's dist and start gissen-mcp's built
+      # CLI, so build both.
+      - name: Build core and mcp
+        run: pnpm --filter gissen --filter gissen-mcp build
 
       - name: Typecheck
         run: pnpm typecheck
@@ -39,3 +41,28 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  # Runs the Quickstart page exactly as written, outside the workspace, against
+  # a tarball packed from this commit. A page and a package that disagree fail
+  # here, even before a release. The same script runs against npm every week,
+  # see quickstart-weekly.yml.
+  quickstart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run the quickstart against this commit
+        run: bash scripts/quickstart-check/run.sh --tarball

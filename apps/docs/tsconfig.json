@@ -1,9 +1,16 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "types": [
+      "node"
+    ],
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -12,5 +19,10 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["snippets/**/*.ts", "snippets/**/*.vue"]
+  "include": [
+    "snippets/**/*.ts",
+    "snippets/**/*.vue",
+    "tests/**/*.ts",
+    "vitest.config.ts"
+  ]
 }

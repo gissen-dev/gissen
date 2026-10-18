@@ -1,30 +1,42 @@
 import { defineConfig } from 'vitepress'
+import { status } from './status'
 
 export default defineConfig({
   title: 'Gissen',
-  description: 'The headless visual editor for Vue. Agent-native, self-hostable, MIT-licensed.',
+  description: `The headless visual editor for Vue. Status: ${status.label}.`,
 
   themeConfig: {
+    search: { provider: 'local' },
+
     nav: [
-      { text: 'Getting Started', link: '/getting-started' },
-      { text: 'Config API', link: '/config-api' },
-      { text: 'Editor', link: '/editor' },
-      { text: 'Rendering', link: '/rendering' },
+      { text: 'Getting started', link: '/getting-started/quickstart' },
+      { text: 'Guides', link: '/guides/defining-components' },
+      { text: 'API', link: '/api/gissen' },
     ],
 
     sidebar: [
       {
-        text: 'Introduction',
+        text: 'Getting started',
         items: [
-          { text: 'Getting Started', link: '/getting-started' },
+          { text: 'Quickstart', link: '/getting-started/quickstart' },
+          { text: 'Nuxt', link: '/getting-started/nuxt' },
         ],
       },
       {
-        text: 'Reference',
+        text: 'Guides',
         items: [
-          { text: 'Config API', link: '/config-api' },
-          { text: 'Editor', link: '/editor' },
-          { text: 'Rendering', link: '/rendering' },
+          { text: 'Defining components', link: '/guides/defining-components' },
+          { text: 'Slots and allow lists', link: '/guides/slots' },
+          { text: 'Rendering and SSR', link: '/guides/rendering' },
+          { text: 'Working with page data', link: '/guides/page-data' },
+          { text: 'The editor', link: '/guides/editor' },
+        ],
+      },
+      {
+        text: 'API reference',
+        items: [
+          { text: 'gissen and gissen/render', link: '/api/gissen' },
+          { text: 'gissen-mcp', link: '/api/gissen-mcp' },
         ],
       },
     ],

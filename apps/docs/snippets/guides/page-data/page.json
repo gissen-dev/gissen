@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "root": { "props": { "theme": "light" } },
+  "content": [
+    { "type": "Hero", "props": { "id": "hero-1", "title": "Welcome" } }
+  ]
+}
