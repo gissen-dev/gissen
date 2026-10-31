@@ -2,5 +2,5 @@
   "version": 1,
   "root": { "props": {} },
   "content": [
-    { "type": "Hero", "props": { "id": "hero-1" }
-  ]
+    { "type": "Hero", "props": { "id": "hero-1", "title": "Hello" } },
+    { "type": "Container", "props": { "id": "container-1", "children": [

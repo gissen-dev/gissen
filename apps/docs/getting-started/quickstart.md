@@ -2,7 +2,7 @@
 
 <GissenStatus />
 
-You will build a Vue app with the Gissen editor on top and the rendered page below it. You need Node 20.19 or newer, or Node 22.12 or newer, which is what the current Vite template requires.
+You will build a Vue app with the Gissen editor on top and the rendered page below it. You need Node 22.12 or newer.
 
 The finished app is [examples/vite-basic](https://github.com/gissen-dev/gissen/tree/main/examples/vite-basic) in the Gissen repository. Open it directly if you'd rather start from a working project than type these steps.
 

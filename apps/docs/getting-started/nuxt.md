@@ -4,6 +4,8 @@
 
 Gissen works in a Nuxt 4 app without a module. You import the components yourself. The code on this page comes from an example app that is built and type-checked in CI.
 
+Nuxt 4 itself needs Node 22.22 or newer, or Node 24.15 or newer.
+
 ## Install
 
 ```sh

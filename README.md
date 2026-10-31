@@ -42,7 +42,7 @@ The examples are not workspace members. Each one is a standalone project that in
 
 ## Development
 
-This is a [pnpm](https://pnpm.io) workspace. It needs Node 20 or newer.
+This is a [pnpm](https://pnpm.io) workspace. It needs Node 22 or newer.
 
 ```sh
 pnpm install

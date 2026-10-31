@@ -13,7 +13,7 @@ for a curated starting point.
 
 ## Prerequisites
 
-- **Node 20+** (the repo pins a version in [`.nvmrc`](./.nvmrc); `nvm use` picks it up)
+- **Node 22+** (the repo pins a version in [`.nvmrc`](./.nvmrc); `nvm use` picks it up)
 - **pnpm 9** — this is a pnpm workspace. Enable it with `corepack enable` if you
   don't have it.
 

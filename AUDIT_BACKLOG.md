@@ -315,3 +315,15 @@ enforces. Only the server-version entry was fixed in this phase.
   both page chunks one shared copy. The library side could use
   `Symbol.for('gissen-editor-store')` (a shared key) or a string key, so a duplicated
   module still finds the store. _Status: open. Labels: pre-beta._
+- **No package says which Node it needs.** The published `gissen` and
+  `gissen-mcp` have no `engines` field; only the private workspace root does
+  (`>=20`). Node 20 reached end of life in April 2026. The docs now state the
+  real minimums, taken from the tools rather than from memory: the Quickstart
+  needs Node 22.12 or newer (Vite 8 and create-vite: `^20.19.0 || >=22.12.0`,
+  with the 20 line dropped because it is out of support), and the Nuxt page needs
+  22.22 or newer, or 24.15 or newer (Nuxt 4.6: `^22.22.3 || ^24.15.0`). CI runs the
+  workspace on 22 and the consumer checks on 22 and 24. The docs being stricter than
+  the metadata is deliberate for now. Add `engines` to the published packages, and
+  raise the root's, as a package-metadata change in the hardening batch before the
+  beta. `release.yml` still sets up Node 20 and is left alone until then: release
+  pipeline changes need their own approval. _Status: open. Labels: pre-beta._
