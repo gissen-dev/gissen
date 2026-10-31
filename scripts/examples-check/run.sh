@@ -103,7 +103,7 @@ if [[ "$EXAMPLE" == "mcp-agent" ]]; then
   MCP_BIN="$WORK/node_modules/gissen-mcp/dist/cli.js"
   INIT_REQUEST='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"examples-check","version":"0.0.0"}}}'
   TOOLS_REQUEST='{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
-  ADD_REQUEST='{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"add_component","arguments":{"type":"Note"}}}'
+  ADD_REQUEST='{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"add_component","arguments":{"type":"TextBlock"}}}'
   RPC_OUTPUT="$( { printf '%s\n%s\n%s\n' "$INIT_REQUEST" "$TOOLS_REQUEST" "$ADD_REQUEST"; sleep 1; } | node "$MCP_BIN" --config gissen.config.ts --data "$SCRATCH/page.copy.json" 2>/dev/null )"
 
   node -e '
@@ -117,7 +117,7 @@ if [[ "$EXAMPLE" == "mcp-agent" ]]; then
     }
     const addResponse = lines.find(l => l.id === 3)
     const text = addResponse?.result?.content?.[0]?.text ?? ""
-    if (!text.includes("Added a \"Note\"")) {
+    if (!text.includes("Added a \"TextBlock\"")) {
       console.error("FAIL: add_component did not report success: " + text)
       process.exit(1)
     }

@@ -30,7 +30,7 @@ Nested containers, two levels of slot `allow` lists, and the `select` and `numbe
 
 ## mcp-agent
 
-A `page.json` an AI agent edits directly, with no editor UI in the app at all. The running page updates live, through the same Hot Module Replacement Vite already has, as `gissen-mcp` rewrites the file. Includes the client config for Claude Desktop and Cursor. See the [MCP guide](./agents/mcp) for what the agent can and cannot do.
+A `page.json` an AI agent edits while you watch. The app has an editor view and a rendered view over that file, and both update live, through the Hot Module Replacement Vite already has, as `gissen-mcp` rewrites it. Includes the client config for Claude Desktop and Cursor. See the [MCP guide](./agents/mcp) for what the agent can and cannot do.
 
 [Source](https://github.com/gissen-dev/gissen/tree/main/examples/mcp-agent) · [Open in StackBlitz](https://stackblitz.com/github/gissen-dev/gissen/tree/main/examples/mcp-agent)
 
