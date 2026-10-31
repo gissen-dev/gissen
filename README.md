@@ -1,161 +1,55 @@
 # Gissen
 
-> The headless visual editor for Vue. Agent-native, self-hostable, MIT-licensed.
+> A headless visual editor for Vue.
 
-![Status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-orange)
+Gissen is in alpha. APIs can change between releases. Do not use it in production.
 
-Gissen is an open-source headless visual editor for Vue 3. Developers register
-their existing Vue components with a typed config object; end-users (or AI
-agents, via [an MCP server](./packages/mcp)) drag and drop those components onto
-a canvas to build pages. The output is JSON describing the page tree, which the
-developer renders back into real Vue components in their app.
+You register your own Vue components. Gissen adds the editor, the JSON document and the renderer. An AI agent can edit the same page through an MCP server, held to your config.
 
-It is the Vue equivalent of [Puck](https://github.com/puckeditor/puck), the
-React-based visual editor.
+If you know [Puck](https://github.com/puckeditor/puck) for React, Gissen takes a similar approach for Vue.
 
-> **Status:** pre-alpha. APIs are unstable. The editor canvas with
-> drag-and-drop, the properties panel, undo/redo history, viewport preview,
-> the production renderer (`<GissenRender>`, SSR-ready), and the MCP server for
-> AI agents are functional.
+## Install
 
-## Demo & deep dive
-
-[![Watch the demo](https://img.youtube.com/vi/tT_0eCHhnIE/maxresdefault.jpg)](https://youtu.be/tT_0eCHhnIE)
-
-📺 **[Watch the demo video](https://youtu.be/tT_0eCHhnIE)**
-
-📝 **[Building a headless visual editor for Vue: the Vue answer to Puck](https://dev.to/yukos1221/building-a-headless-visual-editor-for-vue-the-vue-answer-to-puck-10b7)** — a technical deep dive on dev.to.
-
-## Quickstart
-
-```bash
+```sh
 npm install gissen
 ```
 
-**1. Register your components** — a typed config maps component names to
-editable fields and the Vue component that renders them:
+It needs Vue 3.4 or newer.
 
-```ts
-// gissen.config.ts
-import { defineGissenConfig } from 'gissen/render'
-import Hero from './components/Hero.vue'
+## Documentation
 
-export default defineGissenConfig({
-  components: {
-    Hero: {
-      fields: {
-        title: { type: 'text', label: 'Title' },
-      },
-      defaultProps: { title: 'Hello world' },
-      render: Hero,
-    },
-  },
-})
-```
+Everything is on **[gissen.dev](https://gissen.dev)**:
 
-**2. Edit** — drop `<GissenEditor>` on a page; users build the page tree
-visually, and the document is plain JSON you can persist anywhere:
+- [Quickstart](https://gissen.dev/getting-started/quickstart): an empty directory to a working editor.
+- [Playground](https://gissen.dev/playground): the editor in your browser, nothing to install.
+- [Guides](https://gissen.dev/guides/defining-components) and the [API reference](https://gissen.dev/api/gissen).
+- [AI agents (MCP)](https://gissen.dev/agents/mcp): `gissen-mcp`, setup for Claude Desktop and Cursor, and every error message an agent can get.
+- [Examples](https://gissen.dev/examples): four runnable apps, in [`examples/`](./examples).
 
-```vue
-<script setup lang="ts">
-import type { GissenData } from 'gissen'
-import { GissenEditor } from 'gissen'
-import { ref } from 'vue'
-import config from './gissen.config'
-import 'gissen/style.css'
+Further reading: [Building a headless visual editor for Vue: the Vue answer to Puck](https://dev.to/yukos1221/building-a-headless-visual-editor-for-vue-the-vue-answer-to-puck-10b7), a technical deep dive on dev.to.
 
-const data = ref<GissenData>({ root: { props: {} }, content: [] })
-
-function save() {
-  localStorage.setItem('page', JSON.stringify(data.value))
-}
-</script>
-
-<template>
-  <button @click="save">
-    Save
-  </button>
-  <GissenEditor v-model:data="data" :config="config" style="height: 100vh;" />
-</template>
-```
-
-**3. Render** — put `<GissenRender>` on the real page with the saved JSON.
-Imported from `gissen/render`, it ships without the editor stack, emits zero
-wrapper elements, and is SSR-safe:
-
-```vue
-<script setup lang="ts">
-import type { GissenData } from 'gissen/render'
-import { GissenRender } from 'gissen/render'
-import config from './gissen.config'
-
-const data: GissenData = JSON.parse(localStorage.getItem('page') ?? '{"root":{"props":{}},"content":[]}')
-</script>
-
-<template>
-  <GissenRender :config="config" :data="data" />
-</template>
-```
-
-See the [documentation](https://gissen.dev) and
-[examples/nuxt-ssr](./examples/nuxt-ssr) for the full tour, including SSR.
-
-## AI agents (MCP)
-
-The same config drives [`gissen-mcp`](./packages/mcp), a Model Context Protocol
-server that lets an AI agent read and edit a page tree on disk. Nothing to
-install — your client spawns it through `npx`:
-
-```json
-{
-  "mcpServers": {
-    "gissen": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "gissen-mcp",
-        "--config",
-        "/absolute/path/to/your/gissen.config.ts",
-        "--data",
-        "/absolute/path/to/your/page.json"
-      ]
-    }
-  }
-}
-```
-
-The agent is constrained by that config: the component types, fields, select
-options, and slot `allow` lists you declared become the tool schemas it sees, so
-it can only build with components you registered — and every rejected edit names
-what was wrong and what's available instead.
-
-Setup for Claude Desktop and Cursor, the five tools, and the config
-constraints in detail: [`gissen-mcp` README](./packages/mcp/README.md).
-
-## Monorepo structure
+## Repository
 
 ```
-gissen/
-├── packages/
-│   ├── core/                # gissen — editor + renderer library
-│   ├── mcp/                 # gissen-mcp — MCP server for AI agents
-│   └── create-gissen-app/   # create-gissen-app — project scaffolder
-├── apps/
-│   └── docs/                # VitePress documentation site
-└── examples/                # vite-basic, nuxt-ssr, layouts-and-slots, mcp-agent (see examples/*/README.md)
+packages/core/               gissen: the editor and the renderer
+packages/mcp/                gissen-mcp: the MCP server for AI agents
+packages/create-gissen-app/  create-gissen-app: project scaffolder (not released)
+apps/docs/                   the documentation site (VitePress)
+examples/                    vite-basic, nuxt-ssr, layouts-and-slots, mcp-agent
 ```
+
+The examples are not workspace members. Each one is a standalone project that installs the published packages from npm.
 
 ## Development
 
-This is a [pnpm](https://pnpm.io) workspace. Requires Node 20+.
+This is a [pnpm](https://pnpm.io) workspace. It needs Node 20 or newer.
 
-```bash
-pnpm install     # install all workspace dependencies
-pnpm dev         # run dev servers across packages
-pnpm build       # build all packages
-pnpm test        # run tests across packages
-pnpm lint        # lint the whole repository
-pnpm typecheck   # type-check across packages
+```sh
+pnpm install
+pnpm build
+pnpm test
+pnpm lint
+pnpm typecheck
 ```
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for more.

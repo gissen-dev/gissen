@@ -289,3 +289,29 @@ enforces. Only the server-version entry was fixed in this phase.
   since Phase 6. Nothing in the docs said this convention existed until the
   Slots guide and this example made it unavoidable to notice. _Status: open.
   Labels: pre-beta._
+
+## Surfaced during Phase 8, continued (playground and landing)
+
+- **The editor has no layout for a narrow screen.** `.gissen-editor` is a fixed
+  three-column grid: `--gissen-sidebar-width` (260px) + the canvas +
+  `--gissen-panel-width` (300px). At 375px the canvas has about 0px left. The
+  playground works around it with a frame that scrolls sideways (the editor keeps
+  a 960px minimum there) and opens on Preview on small screens. Shrinking the
+  panels through the CSS variables was rejected: those variables are about to be
+  split into public and internal ones (see the CSS variables entry above). A real
+  narrow layout belongs to the editor itself. _Status: open, planned for the
+  responsive-layout phase. Labels: pre-beta._
+- **A bundler that duplicates the editor's modules breaks the canvas silently.**
+  The editor store's injection key is a module-scope `Symbol('gissen-editor-store')`
+  in `useEditorStore.ts`, and `CanvasNode` loads `CanvasSlot` lazily
+  (`defineAsyncComponent`). VitePress builds two chunks per page (one for the first
+  load, one for in-site navigation); with a static `import` of the editor in a page,
+  each chunk got its own copy of the editor and the lazy `CanvasSlot` chunk imported
+  the other copy. Its `inject` then missed the store, the console showed
+  `useEditorStore() was called outside of a <GissenEditor> context`, and every slot
+  rendered empty (a `Columns` node showed `<div class="columns"><!----></div>`).
+  Only the editor's own `Hero` rendered, so it looked like a data problem. The
+  playground avoids it by importing the editor through a dynamic import, which gives
+  both page chunks one shared copy. The library side could use
+  `Symbol.for('gissen-editor-store')` (a shared key) or a string key, so a duplicated
+  module still finds the store. _Status: open. Labels: pre-beta._

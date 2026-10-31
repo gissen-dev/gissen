@@ -4,8 +4,8 @@ Thanks for your interest in contributing! Gissen is a headless visual editor for
 Vue 3, MIT-licensed and developed in the open. This guide gets you from a fresh
 clone to an open PR.
 
-Gissen is in **pre-alpha** — APIs are unstable and the surface area changes
-quickly. That makes well-scoped contributions (tests, docs, examples, a11y)
+Gissen is in **alpha**: APIs can change between releases, and the surface area
+changes quickly. That makes well-scoped contributions (tests, docs, examples, a11y)
 especially valuable. See the issues labelled
 [`Good first issue`](https://github.com/gissen-dev/gissen/labels/Good%20first%20issue)
 and [`Help wanted`](https://github.com/gissen-dev/gissen/labels/Help%20wanted)
@@ -97,7 +97,34 @@ The Quickstart is executed in CI by `scripts/quickstart-check/run.sh`. Run
 `bash scripts/quickstart-check/run.sh` to try it against this tree, or with
 `--npm` against the published packages.
 
-The project status is written once, in `apps/docs/.vitepress/status.ts`.
+The project status is written once, in `apps/docs/.vitepress/status.ts`. The
+READMEs repeat that sentence word for word, and `consistency.test.ts` fails if
+they stop matching, or if the install command, the way Puck is mentioned or the
+style rules (no em dashes, no marketing words) drift between pages.
+
+`pnpm build` is followed in CI by `pnpm --filter gissen-docs check:links`, which
+checks the built site for broken `#anchors` and missing images or videos. VitePress
+itself only catches a missing page.
+
+The playground (`apps/docs/playground/`) has its own small demo config, so it
+works on whatever `gissen` the docs build resolves to. It is loaded with a dynamic
+import on purpose; see the comment in `apps/docs/playground.md`.
+
+**Draft pages.** `apps/docs/why-gissen.md` is a draft. It is excluded from the build
+unless you set `DOCS_DRAFTS=1`, so it cannot ship with a release by accident:
+
+```sh
+DOCS_DRAFTS=1 pnpm --filter gissen-docs dev
+```
+
+When it is ready, delete the `srcExclude` line in `apps/docs/.vitepress/config.ts`,
+add the page to the sidebar and remove `search: false` from it. The tests in
+`consistency.test.ts` that keep it hidden will need updating at the same time.
+
+**Demo videos.** The landing page and the MCP guide show a short silent clip when
+`apps/docs/public/demo/editor.*` or `agent.*` exist, and a fallback otherwise.
+`scripts/demo-video/README.md` has the specification, the encoder and a privacy
+checklist to go through before committing a recording.
 
 Before opening a PR, please make sure the full gate passes locally:
 
