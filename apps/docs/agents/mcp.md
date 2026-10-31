@@ -171,7 +171,7 @@ These are not tool responses: the server never reaches a working session, so the
 
 <<< @/snippets/agents/catalogue/start-config-file-missing.txt [--config /path/to/does-not-exist.ts]
 
-**The config relies on build-time auto-imports.** This is the exact failure a real Nuxt config hits when loaded outside Nuxt: see [Limitations](#limitations) and [examples/nuxt-ssr](https://github.com/gissen-dev/gissen/tree/main/examples/nuxt-ssr).
+**The config relies on build-time auto-imports.** A Nuxt config that calls `defineComponent` or `h` without importing them works in the app and fails here. Put that markup in a `.vue` file instead, as [examples/nuxt-ssr](https://github.com/gissen-dev/gissen/tree/main/examples/nuxt-ssr) does with its page root. See also [Limitations](#limitations).
 
 <<< @/snippets/agents/catalogue/start-config-reference-error.txt [a config calling defineComponent/h without importing them]
 

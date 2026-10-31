@@ -1,8 +1,10 @@
+import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { ConfigLoadError } from '../../src/errors'
 import { loadGissenConfig } from '../../src/loader/load-config'
+import { rewriteStubImports } from '../../src/loader/rewrite-stub-imports'
 
 const fixturesDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'config')
 const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..')
@@ -54,14 +56,20 @@ describe('loadGissenConfig', () => {
     await expect(loadGissenConfig(configPath)).rejects.toThrow(/\.vue/)
   })
 
-  // Regression pin: examples/nuxt-ssr/gissen.config.ts calls
-  // `defineComponent`/`h` without importing them — Nuxt supplies both as
-  // build-time auto-imports, unavailable when the config is loaded
-  // standalone via jiti/Node. This isn't something Phase A fixes (that would
-  // mean editing the example app); it's documented here so a future change
-  // that accidentally "fixes" it is noticed rather than silently drifting.
-  it('documents that the repo\'s real Nuxt example config cannot load standalone', async () => {
-    const configPath = path.join(repoRoot, 'examples', 'nuxt-ssr', 'gissen.config.ts')
-    await expect(loadGissenConfig(configPath)).rejects.toThrow(/defineComponent/)
+  // Regression pin: examples/nuxt-ssr keeps its field schema in schema.ts so
+  // that one file serves two consumers that cannot load Vue: the example's
+  // Nitro server route, which validates writes against it, and this server.
+  // The pin checks the schema itself, not the full gissen.config.ts: that
+  // one also loads here, but only because its `.vue` imports are swapped for
+  // stubs, which would prove the workaround rather than the split. So the
+  // schema must load with nothing rewritten at all. A `.vue` import, or a
+  // build-time auto-import such as `defineComponent`/`h` used without an
+  // import, would break both of its consumers at once.
+  it('loads the Nuxt example\'s schema.ts standalone, with no import rewritten', async () => {
+    const schemaPath = path.join(repoRoot, 'examples', 'nuxt-ssr', 'schema.ts')
+    const source = await readFile(schemaPath, 'utf8')
+    expect(rewriteStubImports(source)).toBe(source)
+    const config = await loadGissenConfig(schemaPath)
+    expect(Object.keys(config.components).sort()).toEqual(['Container', 'FeatureCard', 'Hero', 'TextBlock'])
   })
 })

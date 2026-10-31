@@ -51,7 +51,7 @@ export const fields = {
       icon: { type: 'text', label: 'Icon (emoji)' },
       title: { type: 'text', label: 'Title' },
       description: { type: 'textarea', label: 'Description' },
-      badge: { type: 'number', label: 'Badge number' },
+      badge: { type: 'number', label: 'Badge number', min: 1, max: 99 },
       highlighted: { type: 'boolean', label: 'Highlighted' },
     } as const,
     defaultProps: {
@@ -75,7 +75,10 @@ export const fields = {
  * component — it exists only because `ComponentConfig` requires one, and it
  * is never called here. This is what lets server/api/page.put.ts validate
  * an incoming document without importing the Vue render stack: see the note
- * on the Nuxt docs page for why that import matters on this server.
+ * on the Nuxt docs page for why that import matters on this server. The
+ * same file also loads in gissen-mcp with no import rewritten, which a test
+ * in packages/mcp pins: keep it free of `.vue` imports and of anything Nuxt
+ * auto-imports.
  *
  * This split is a workaround, not a recommended pattern — `gissen.config.ts`
  * conflates field schema and render components, which is fine for a

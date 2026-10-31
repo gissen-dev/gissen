@@ -2,6 +2,7 @@ import { defineGissenConfig } from 'gissen'
 import Container from './components/Container.vue'
 import FeatureCard from './components/FeatureCard.vue'
 import Hero from './components/Hero.vue'
+import PageRoot from './components/PageRoot.vue'
 import TextBlock from './components/TextBlock.vue'
 import { fields } from './schema'
 
@@ -16,9 +17,6 @@ export default defineGissenConfig({
     Container: { ...fields.Container, render: Container },
   },
   root: {
-    render: defineComponent({
-      setup: (_, { slots }) =>
-        () => h('main', { style: 'background:#f5f3f0; padding:2rem;' }, slots.default?.()),
-    }),
+    render: PageRoot,
   },
 })
