@@ -42,6 +42,11 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # VitePress fails the build on a dead page link, but not on a broken
+      # #anchor or a missing image or video. This checks the built site for both.
+      - name: Check docs links
+        run: pnpm --filter gissen-docs check:links
+
   # Runs the Quickstart page exactly as written, outside the workspace, against
   # a tarball packed from this commit. A page and a package that disagree fail
   # here, even before a release. The same script runs against npm every week,

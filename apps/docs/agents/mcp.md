@@ -6,6 +6,8 @@
 
 This page covers setup, how the constraint actually works, what an agent sees when it is refused, and the limitations. The flags and the five tools, one by one, are in the [API reference](../api/gissen-mcp).
 
+<DemoMedia kind="agent" />
+
 ## Setup
 
 Nothing to install. Your MCP client spawns the server through `npx`, which fetches and caches it on first run.

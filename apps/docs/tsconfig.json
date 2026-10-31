@@ -20,6 +20,9 @@
     "skipLibCheck": true
   },
   "include": [
+    "components/**/*.vue",
+    "playground/**/*.ts",
+    "playground/**/*.vue",
     "snippets/**/*.ts",
     "snippets/**/*.vue",
     "tests/**/*.ts",

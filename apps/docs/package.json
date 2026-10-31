@@ -8,7 +8,8 @@
     "build": "vitepress build",
     "preview": "vitepress preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:links": "node scripts/check-links.mjs"
   },
   "dependencies": {
     "gissen": "workspace:*"
