@@ -1,0 +1,1 @@
+Value 10 for number field "rating" on component "card-1" (type "Card") is out of range. Allowed range: 0 to 5. The page was not changed.

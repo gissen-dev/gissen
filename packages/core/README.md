@@ -1,85 +1,33 @@
-# Gissen
+# gissen
 
-> The headless visual editor for Vue. Agent-native, self-hostable, MIT-licensed.
+A headless visual editor and renderer for Vue 3.
 
-> **Pre-alpha — APIs are unstable. Do not use in production yet.**
+Gissen is in alpha. APIs can change between releases. Do not use it in production.
 
-Gissen lets you register your existing Vue 3 components with a typed config object so end-users (or AI agents, via an MCP server) can drag and drop them onto a canvas to build pages. The output is plain JSON that you render back into real Vue components.
+You register your own Vue components with a typed config. Gissen adds the editor, the JSON document and the renderer. An AI agent can edit the same page through [`gissen-mcp`](https://www.npmjs.com/package/gissen-mcp), held to your config.
 
-It is the Vue equivalent of [Puck](https://github.com/puckeditor/puck).
+If you know [Puck](https://github.com/puckeditor/puck) for React, Gissen takes a similar approach for Vue.
 
 ## Install
 
-```bash
+```sh
 npm install gissen
 ```
 
-Requires Vue 3.4+.
+It needs Vue 3.4 or newer.
 
-## Quick start
+## Start here
 
-**1. Define a config**
+- [Quickstart](https://gissen.dev/getting-started/quickstart): an empty directory to a working editor.
+- [Playground](https://gissen.dev/playground): try the editor in your browser.
+- [Guides](https://gissen.dev/guides/defining-components) and the [API reference](https://gissen.dev/api/gissen).
+- [AI agents (MCP)](https://gissen.dev/agents/mcp).
 
-```ts
-// gissen.config.ts
-import { defineGissenConfig } from 'gissen'
-import Hero from './components/Hero.vue'
+## Entry points
 
-export default defineGissenConfig({
-  components: {
-    Hero: {
-      fields: {
-        title: { type: 'text', label: 'Title' },
-        subtitle: { type: 'textarea', label: 'Subtitle' },
-        cta: {
-          type: 'select',
-          label: 'CTA',
-          options: [
-            { label: 'Sign up', value: 'signup' },
-            { label: 'Buy now', value: 'buy' },
-          ] as const,
-        },
-      },
-      defaultProps: { title: 'Hello', subtitle: '', cta: 'signup' },
-      render: Hero,
-    },
-  },
-})
-```
-
-**2. Drop in the editor**
-
-```vue
-<script setup lang="ts">
-import type { GissenData } from 'gissen'
-import { GissenEditor } from 'gissen'
-import { ref } from 'vue'
-import config from './gissen.config'
-import 'gissen/style.css'
-
-const data = ref<GissenData>({ root: { props: {} }, content: [] })
-</script>
-
-<template>
-  <GissenEditor v-model:data="data" :config="config" style="height: 100vh;" />
-</template>
-```
-
-`data` is plain JSON — persist it however you like (database, file, API).
-
-## Documentation
-
-Full docs at **[gissen.dev](https://gissen.dev)** — Config API reference, slot components, keyboard shortcuts, theming.
-
-## Status
-
-| Feature | Status |
-|---|---|
-| Editor canvas with drag-and-drop | ✓ Available |
-| Keyboard shortcuts (Escape / Delete) | ✓ Available |
-| Properties panel | ✓ Available |
-| Production renderer (`<GissenRender>`) | ✓ Available |
-| MCP server for AI agents ([`gissen-mcp`](https://www.npmjs.com/package/gissen-mcp)) | ✓ Available |
+- `gissen`: the editor, the renderer, helpers, validation and all types.
+- `gissen/render`: the renderer only, with no editor code, for apps that only render.
+- `gissen/style.css`: the editor stylesheet.
 
 ## License
 

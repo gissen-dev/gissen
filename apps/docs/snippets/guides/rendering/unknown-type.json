@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "root": { "props": { "theme": "light" } },
+  "content": [
+    { "type": "Hero", "props": { "id": "a1", "title": "Rendered" } },
+    { "type": "RemovedComponent", "props": { "id": "a2" } }
+  ]
+}

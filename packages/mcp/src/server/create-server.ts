@@ -6,11 +6,11 @@ import { registerMoveComponentTool } from './tools/move-component-tool'
 import { registerReadPageTool } from './tools/read-page-tool'
 import { registerUpdateComponentTool } from './tools/update-component-tool'
 
-// Hand-synced with package.json's version. A runtime read of
-// "../../package.json" relative to import.meta.url would work too, but adds
-// a startup file read and would silently break if tsup's output layout ever
-// changes — a hardcoded constant with this comment is the smaller risk.
-const SERVER_VERSION = '0.0.0'
+// Injected from package.json at build time (see build-version.ts), so the
+// version a client sees in the handshake cannot go stale. A runtime read of
+// package.json would add a startup file read and break if tsup's output
+// layout changed.
+const SERVER_VERSION = __GISSEN_MCP_VERSION__
 
 /** Builds the MCP server and registers exactly the five tools the brief locks in place. */
 export function createGissenServer(context: ServerContext): McpServer {

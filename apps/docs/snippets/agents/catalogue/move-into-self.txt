@@ -1,0 +1,1 @@
+Cannot move component "container-1" into itself. Choose a different parentId, or omit parentId to move it to the top level. The page was not changed.

@@ -1,0 +1,1 @@
+"title" on component "hero-1" (type "Hero") is a text field, not a slot, so components cannot be placed in it. Hero has no slot fields — this type cannot contain children. The page was not changed.

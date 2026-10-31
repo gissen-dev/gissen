@@ -1,0 +1,7 @@
+/* One way to match a flex-row layout between GissenRender and the editor
+   canvas. See the Slots and allow lists guide, "Matching the editor's
+   wrappers". */
+.container :deep(.gissen-slot) {
+  display: flex;
+  gap: 24px;
+}

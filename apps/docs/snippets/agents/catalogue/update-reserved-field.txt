@@ -1,0 +1,1 @@
+"id" is read-only and cannot be set on component "hero-1". Remove "id" from props; to address a different component, pass its id as the "id" argument instead. The page was not changed.

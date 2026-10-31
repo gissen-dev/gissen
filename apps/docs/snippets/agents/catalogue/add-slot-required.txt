@@ -1,0 +1,1 @@
+Placing a component inside "container-1" (type "Container") requires a slot name. Slot fields on Container: "children". Pass slot together with parentId, or omit parentId to place at the top level. The page was not changed.

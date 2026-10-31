@@ -1,0 +1,1 @@
+Cannot move component "container-1" into "container-2", because "container-2" is inside it (at content[1].props.children[1]). Moving a component into its own subtree would detach that subtree from the page. Move it to the top level (omit parentId), or to a parent outside its subtree. The page was not changed.

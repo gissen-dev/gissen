@@ -24,9 +24,11 @@ does not hold — releasing `gissen-mcp` leaves `gissen` alone.
 ## Config notes
 
 - `gissen` (packages/core) and `gissen-mcp` (packages/mcp) are published.
-  `create-gissen-app` and the private `gissen-docs` / `basic-nuxt` are in
-  `ignore` in `config.json`. `ignore` only stops *versioning* — `changeset
-  publish` doesn't read the list at all; what actually keeps
+  `create-gissen-app` and the private `gissen-docs` are in `ignore` in
+  `config.json`. `examples/*` are not workspace members at all (locked
+  decision 2), so changesets never sees them; they are not in `ignore`
+  because there is nothing to ignore. `ignore` only stops *versioning* —
+  `changeset publish` doesn't read the list at all; what actually keeps
   `create-gissen-app` off npm is that its local `0.0.0` is already published
   there, so it's skipped as "already published". Bump it and it ships.
 - The project is in prerelease (`pre.json`, tag `alpha`), so versions read

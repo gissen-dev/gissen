@@ -1,0 +1,2 @@
+exit code: 1
+Failed to load Gissen config from "/path/to/reference-error.config.ts": defineComponent is not defined

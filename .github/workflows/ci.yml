@@ -5,6 +5,8 @@ on:
   pull_request:
 
 jobs:
+  # The workspace's own checks run on the oldest supported Node line. The
+  # consumer jobs below cover both supported lines (22 and 24).
   ci:
     runs-on: ubuntu-latest
     steps:
@@ -17,7 +19,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
 
       - name: Install dependencies
@@ -26,10 +28,12 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      # apps/docs and examples/basic-nuxt resolve `gissen` types from
-      # packages/core/dist, which is gitignored — build core before typecheck.
-      - name: Build core
-        run: pnpm --filter gissen build
+      # apps/docs resolves `gissen` types from packages/core/dist, which is
+      # gitignored — build core before typecheck. The docs tests also read
+      # gissen's dist and start gissen-mcp's built CLI, so build both.
+      # (examples/* are not workspace members — see the `examples` job.)
+      - name: Build core and mcp
+        run: pnpm --filter gissen --filter gissen-mcp build
 
       - name: Typecheck
         run: pnpm typecheck
@@ -39,3 +43,68 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      # VitePress fails the build on a dead page link, but not on a broken
+      # #anchor or a missing image or video. This checks the built site for both.
+      - name: Check docs links
+        run: pnpm --filter gissen-docs check:links
+
+  # Runs the Quickstart page exactly as written, outside the workspace, against
+  # a tarball packed from this commit. A page and a package that disagree fail
+  # here, even before a release. The same script runs against npm every week,
+  # see consumer-weekly.yml.
+  quickstart:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run the quickstart against this commit (Node ${{ matrix.node }})
+        run: bash scripts/quickstart-check/run.sh --tarball
+
+  # Builds each examples/* app outside the workspace, against tarballs packed
+  # from this commit — the same "does the doc/example agree with the code in
+  # this change" check as `quickstart`, for the examples. Each app installs
+  # and builds independently (locked decision 2); the same script runs
+  # against npm every week, see consumer-weekly.yml.
+  examples:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        example: [vite-basic, nuxt-ssr, layouts-and-slots, mcp-agent]
+        node: [22, 24]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build examples/${{ matrix.example }} against this commit (Node ${{ matrix.node }})
+        run: bash scripts/examples-check/run.sh ${{ matrix.example }} --tarball

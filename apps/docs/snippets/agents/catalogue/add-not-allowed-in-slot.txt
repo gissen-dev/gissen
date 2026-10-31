@@ -1,0 +1,1 @@
+Component type "Hero" is not allowed in slot "children" of component "container-1" (type "Container"). That slot accepts: "Card", "Container". Place it where it is accepted, or omit parentId to place it at the top level. The page was not changed.

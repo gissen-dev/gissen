@@ -58,8 +58,11 @@ parts of M-2/M-3, plus L-9 and L-10). Kept here so they aren't lost.
   hosts persisting on every emit see no-op saves. _Status: open._
 - **N-7 — Lint formatting warnings in the example.** 18
   `vue/singleline-html-element-content-newline` warnings in
-  `examples/basic-nuxt/components/*.vue` (fixable with `pnpm lint:fix`).
-  _Status: open (warnings only, lint still passes)._
+  `examples/nuxt-ssr/components/*.vue` (fixable with `pnpm lint:fix`).
+  _Status: superseded. Since Phase 8, `examples/**` is excluded from the root
+  eslint config entirely (locked decision 2: examples are consumers, each
+  with its own scaffolded tooling, not this monorepo's conventions) — these
+  warnings no longer surface at all, in either direction._
 - **N-8 — Tagline vs. stubs.** `packages/create-gissen-app` is a "not
   implemented" stub while the README leads with "Agent-native." (The other
   half of this item closed in Phase 7: `packages/mcp` is a working MCP
@@ -199,3 +202,128 @@ round-tripped documents lack cleared keys.
 - **Editor-output invariant assumed complete `defaultProps`.** Inserting a
   component whose non-slot field has no default yielded a "required prop
   missing" tree. _Fixed by the same tolerance: absent props validate._
+
+## Surfaced during Phase 8 (documentation)
+
+Found while writing the API reference and guides. Labels: **pre-beta** means
+decide before a beta; **breaking** means fixing it changes the public API, so it
+has to land before a beta, not after. The docs describe the current behavior
+and are updated in the same commits as the fixes, which the coverage test
+enforces. Only the server-version entry was fixed in this phase.
+
+- **A render component must declare an `id` prop, or `defineGissenConfig`
+  rejects it.** `InferRenderProps` is `Partial<non-slot fields> & { id: string }`,
+  so a component with only its field props fails the type check with
+  `Property 'id' is missing`. Most components never use the id. Declaring it
+  as a prop also stops Vue from falling it through onto the root element as a
+  DOM attribute. The Quickstart has to explain this on its first component.
+  _Status: open. Options: make `id` optional in `InferRenderProps`, or document
+  it as the convention (current state). Labels: pre-beta, breaking._
+- **`gissen/render` cannot validate.** It exports `GissenRender` and
+  `defineGissenConfig`, not `validateData`. The Rendering guide recommends
+  `gissen/render` for render-only apps and also recommends validating
+  untrusted data before rendering, so a strict render-only app has to import
+  the barrel for one function. _Status: open. Labels: pre-beta._
+- **`validateData` accepts duplicate ids; `gissen-mcp` rejects them.** The MCP
+  document pipeline runs `assertUniqueIds` on every read ("the one check
+  `gissen` itself doesn't make"). A document that `validateData` and the editor
+  accept can therefore be refused by the MCP server. _Status: open. Labels:
+  pre-beta, breaking._
+- **`GissenValidationError.issues` exposes zod's `ZodIssue[]`.** The public
+  type depends on a library the consumer did not choose. The docs tell readers
+  to use `path` and `message` only. _Status: open. Labels: pre-beta,
+  breaking._
+- **`createComponent` throws a plain `Error` for an unknown type.** Every other
+  failure in the public API is a `GissenValidationError`, so one
+  `instanceof` check does not cover all of them. _Status: open. Labels:
+  pre-beta._
+- **`gissen-mcp` reported its version as `0.0.0`.** `SERVER_VERSION` in
+  `packages/mcp/src/server/create-server.ts` was a hand-synced constant and was
+  not updated for `0.1.0-alpha.0`, so a client's initialize handshake showed
+  `gissen-mcp 0.0.0`. _Fixed: the version is injected from package.json at
+  build time (`build-version.ts`, used by tsup and vitest), and two tests
+  compare it with package.json: one in-process, one against the built CLI.
+  Changeset: patch for `gissen-mcp`._
+- **`add_component` takes no `props`.** An agent needs two calls to add a
+  filled-in component: `add_component`, then `update_component`. The tool
+  descriptions say so. Documented as is. _Status: open, possibly by design.
+  Labels: pre-beta._
+- **Public and internal CSS variables share one prefix.** Every `--gissen-*`
+  variable is declared in the same `:root` block, so nothing says which are
+  theme variables and which are layout details. `--gissen-chrome-height` is the
+  clear internal case: its comment describes editor layout, and it is expected
+  to change with a responsive editor layout. The API reference leaves it out,
+  and the coverage test keeps an explicit list of internal variables. Before
+  v1.0, split the public theme variables from the internal ones and move the
+  internal ones to a separate prefix. A documented variable is a semver
+  commitment like an export, so check the six that were first documented in this
+  phase, because the coverage test required them: `--gissen-border-strong`,
+  `--gissen-text-faint`, `--gissen-node-outline`, `--gissen-danger`,
+  `--gissen-danger-light` and `--gissen-radius`. _Status: open. Labels:
+  pre-beta._
+- **`CONTRIBUTING.md` named the docs package `docs`.** The package is
+  `gissen-docs`, so `pnpm --filter docs dev` matched nothing. _Fixed in the
+  Phase 8 documentation pass._
+
+## Surfaced during Phase 8, continued (MCP guide and examples)
+
+- **[pre-beta][breaking] Separate schema from render in the config API.**
+  `GissenConfig` couples field schema (pure data, needed in any runtime) with
+  render components (Vue, browser/SSR only). Every non-browser consumer has
+  to work around it: `gissen-mcp` rewrites `.vue` imports to stubs (with a
+  documented residual gap), its fixtures use `render: () => null`, and a
+  Nitro server route validating with `validateData` cannot import the config
+  at all. The `nuxt-ssr` example currently splits schema and render by hand
+  as a workaround. Target: a render-free schema usable anywhere, with the
+  editor config composed from schema plus a component map; `validateData`
+  and `gissen-mcp` consume the schema directly. _Status: open._
+- **A slot component's CSS has to know the editor's own wrapper classes.**
+  `GissenRender` emits a component's named-slot children directly; the
+  editor wraps the same children in its own `.gissen-slot` / `.gissen-node`
+  elements first (see the Editor guide). A component whose layout depends on
+  direct-child selectors (flex/grid rows, gaps) renders correctly in
+  `GissenRender` but breaks in the editor canvas unless it also styles
+  `:deep(.gissen-slot)` and `:deep(.gissen-slot > .gissen-node)` to match.
+  `examples/layouts-and-slots`'s `Columns.vue` and `Column.vue` need this;
+  `examples/nuxt-ssr`'s `Container.vue` already carried it, undocumented,
+  since Phase 6. Nothing in the docs said this convention existed until the
+  Slots guide and this example made it unavoidable to notice. _Status: open.
+  Labels: pre-beta._
+
+## Surfaced during Phase 8, continued (playground and landing)
+
+- **The editor has no layout for a narrow screen.** `.gissen-editor` is a fixed
+  three-column grid: `--gissen-sidebar-width` (260px) + the canvas +
+  `--gissen-panel-width` (300px). At 375px the canvas has about 0px left. The
+  playground works around it with a frame that scrolls sideways (the editor keeps
+  a 960px minimum there) and opens on Preview on small screens. Shrinking the
+  panels through the CSS variables was rejected: those variables are about to be
+  split into public and internal ones (see the CSS variables entry above). A real
+  narrow layout belongs to the editor itself. _Status: open, planned for the
+  responsive-layout phase. Labels: pre-beta._
+- **A bundler that duplicates the editor's modules breaks the canvas silently.**
+  The editor store's injection key is a module-scope `Symbol('gissen-editor-store')`
+  in `useEditorStore.ts`, and `CanvasNode` loads `CanvasSlot` lazily
+  (`defineAsyncComponent`). VitePress builds two chunks per page (one for the first
+  load, one for in-site navigation); with a static `import` of the editor in a page,
+  each chunk got its own copy of the editor and the lazy `CanvasSlot` chunk imported
+  the other copy. Its `inject` then missed the store, the console showed
+  `useEditorStore() was called outside of a <GissenEditor> context`, and every slot
+  rendered empty (a `Columns` node showed `<div class="columns"><!----></div>`).
+  Only the editor's own `Hero` rendered, so it looked like a data problem. The
+  playground avoids it by importing the editor through a dynamic import, which gives
+  both page chunks one shared copy. The library side could use
+  `Symbol.for('gissen-editor-store')` (a shared key) or a string key, so a duplicated
+  module still finds the store. _Status: open. Labels: pre-beta._
+- **No package says which Node it needs.** The published `gissen` and
+  `gissen-mcp` have no `engines` field; only the private workspace root does
+  (`>=20`). Node 20 reached end of life in April 2026. The docs now state the
+  real minimums, taken from the tools rather than from memory: the Quickstart
+  needs Node 22.12 or newer (Vite 8 and create-vite: `^20.19.0 || >=22.12.0`,
+  with the 20 line dropped because it is out of support), and the Nuxt page needs
+  22.22 or newer, or 24.15 or newer (Nuxt 4.6: `^22.22.3 || ^24.15.0`). CI runs the
+  workspace on 22 and the consumer checks on 22 and 24. The docs being stricter than
+  the metadata is deliberate for now. Add `engines` to the published packages, and
+  raise the root's, as a package-metadata change in the hardening batch before the
+  beta. `release.yml` still sets up Node 20 and is left alone until then: release
+  pipeline changes need their own approval. _Status: open. Labels: pre-beta._

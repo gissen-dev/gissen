@@ -1,0 +1,2 @@
+exit code: 1
+Failed to load Gissen config from "/path/to/does-not-exist.ts": ENOENT: no such file or directory, open '/path/to/does-not-exist.ts'

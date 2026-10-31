@@ -58,6 +58,12 @@ async function setup(fixture: string, initialJson = emptyPage) {
 }
 
 describe('createGissenServer', () => {
+  it('reports the package.json version in the handshake, not a placeholder', async () => {
+    const { client } = await setup('gissen.config.ts')
+    const { version } = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8')) as { version: string }
+    expect(client.getServerVersion()).toEqual({ name: 'gissen-mcp', version })
+  })
+
   it('lists exactly the five tools, by name', async () => {
     const { client } = await setup('gissen.config.ts')
     const { tools } = await client.listTools()

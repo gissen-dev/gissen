@@ -1,0 +1,1 @@
+Component "hero-1" (type "Hero") has no field "bogus". Its fields are: "title". The page was not changed.

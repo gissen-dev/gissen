@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to file a bug! Gissen is in pre-alpha, so
-        some rough edges are expected — but a clear report helps a lot.
+        Thanks for taking the time to file a bug! Gissen is in alpha, so
+        some rough edges are expected, but a clear report helps a lot.
   - type: textarea
     id: what-happened
     attributes:

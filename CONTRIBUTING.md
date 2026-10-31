@@ -4,8 +4,8 @@ Thanks for your interest in contributing! Gissen is a headless visual editor for
 Vue 3, MIT-licensed and developed in the open. This guide gets you from a fresh
 clone to an open PR.
 
-Gissen is in **pre-alpha** — APIs are unstable and the surface area changes
-quickly. That makes well-scoped contributions (tests, docs, examples, a11y)
+Gissen is in **alpha**: APIs can change between releases, and the surface area
+changes quickly. That makes well-scoped contributions (tests, docs, examples, a11y)
 especially valuable. See the issues labelled
 [`Good first issue`](https://github.com/gissen-dev/gissen/labels/Good%20first%20issue)
 and [`Help wanted`](https://github.com/gissen-dev/gissen/labels/Help%20wanted)
@@ -13,7 +13,7 @@ for a curated starting point.
 
 ## Prerequisites
 
-- **Node 20+** (the repo pins a version in [`.nvmrc`](./.nvmrc); `nvm use` picks it up)
+- **Node 22+** (the repo pins a version in [`.nvmrc`](./.nvmrc); `nvm use` picks it up)
 - **pnpm 9** — this is a pnpm workspace. Enable it with `corepack enable` if you
   don't have it.
 
@@ -32,8 +32,14 @@ packages/core/              # gissen — the editor library (Vue components, uti
 packages/mcp/               # gissen-mcp — MCP server for AI agents
 packages/create-gissen-app/ # create-gissen-app — project scaffolder
 apps/docs/                  # VitePress documentation site
-examples/basic-nuxt/        # a runnable Nuxt 4 app using Gissen
+examples/                   # vite-basic, nuxt-ssr, layouts-and-slots, mcp-agent — see examples/*/README.md
 ```
+
+`examples/*` are deliberately not workspace members: each is a standalone
+npm project depending on the published `gissen`/`gissen-mcp`, with its own
+`package-lock.json`. `pnpm install` at the repo root does not touch them; run
+`npm install` inside one directly. `scripts/examples-check/run.sh <name>`
+builds one the way CI does, against either a tarball of this tree or npm.
 
 ## Common commands
 
@@ -57,12 +63,68 @@ pnpm test -- --watch
 pnpm typecheck
 ```
 
-To run the example app or the docs site locally:
+To run the docs site locally:
 
 ```bash
-pnpm --filter basic-nuxt dev    # the Nuxt example
-pnpm --filter docs dev          # the VitePress docs
+pnpm --filter gissen-docs dev
 ```
+
+To run an example, from inside its own directory (see above):
+
+```bash
+cd examples/vite-basic
+npm install
+npm run dev
+```
+
+### Writing docs
+
+Code in the docs is never typed into a page. Pages import it from real files
+under `apps/docs/snippets/` (`<<< @/snippets/...`), and `pnpm typecheck`
+compiles those files against the real package. Only shell commands and JSON
+may be written inline. `pnpm --filter gissen-docs test` fails if a page has any
+other fenced block or imports a file or region that does not exist.
+
+The API reference (`apps/docs/api/`) is written by hand. The same test run
+compares it with the built packages: every export of `gissen` and
+`gissen/render`, every CSS variable, every `gissen-mcp` flag and every MCP tool
+with its arguments must be documented, and nothing documented may be missing
+from the build. Build first (`pnpm --filter gissen --filter gissen-mcp build`).
+To document a new export, add a ``### `Name` `` section with an `Entry points:`
+line to `apps/docs/api/gissen.md`.
+
+The Quickstart is executed in CI by `scripts/quickstart-check/run.sh`. Run
+`bash scripts/quickstart-check/run.sh` to try it against this tree, or with
+`--npm` against the published packages.
+
+The project status is written once, in `apps/docs/.vitepress/status.ts`. The
+READMEs repeat that sentence word for word, and `consistency.test.ts` fails if
+they stop matching, or if the install command, the way Puck is mentioned or the
+style rules (no em dashes, no marketing words) drift between pages.
+
+`pnpm build` is followed in CI by `pnpm --filter gissen-docs check:links`, which
+checks the built site for broken `#anchors` and missing images or videos. VitePress
+itself only catches a missing page.
+
+The playground (`apps/docs/playground/`) has its own small demo config, so it
+works on whatever `gissen` the docs build resolves to. It is loaded with a dynamic
+import on purpose; see the comment in `apps/docs/playground.md`.
+
+**Draft pages.** `apps/docs/why-gissen.md` is a draft. It is excluded from the build
+unless you set `DOCS_DRAFTS=1`, so it cannot ship with a release by accident:
+
+```sh
+DOCS_DRAFTS=1 pnpm --filter gissen-docs dev
+```
+
+When it is ready, delete the `srcExclude` line in `apps/docs/.vitepress/config.ts`,
+add the page to the sidebar and remove `search: false` from it. The tests in
+`consistency.test.ts` that keep it hidden will need updating at the same time.
+
+**Demo videos.** The landing page and the MCP guide show a short silent clip when
+`apps/docs/public/demo/editor.*` or `agent.*` exist, and a fallback otherwise.
+`scripts/demo-video/README.md` has the specification, the encoder and a privacy
+checklist to go through before committing a recording.
 
 Before opening a PR, please make sure the full gate passes locally:
 
